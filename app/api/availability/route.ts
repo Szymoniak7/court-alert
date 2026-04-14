@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
         ? fetchKlubySlots(club.id, club.name, club.klubySlug!, date)
         : club.source === 'kluby-auth'
         ? fetchKlubyAuthSlots(club.id, club.name, club.klubySlug!, date)
-        : fetchPlaytomicSlots(club.id, club.name, club.playtomicTenantId!, date),
+        : fetchPlaytomicSlots(club.id, club.name, club.playtomicTenantId!, date, club.playtomicSlug),
     }))
   );
 

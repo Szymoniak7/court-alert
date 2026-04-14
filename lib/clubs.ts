@@ -8,6 +8,8 @@ export interface Club {
   klubySlug?: string;
   // Playtomic tenant UUID
   playtomicTenantId?: string;
+  // Playtomic URL slug (for booking link)
+  playtomicSlug?: string;
 }
 
 export const CLUBS: Club[] = [
@@ -34,18 +36,21 @@ export const CLUBS: Club[] = [
     name: 'InterPadel Warszawa',
     source: 'playtomic',
     playtomicTenantId: '057c5f40-f54b-4e4d-977c-1f9547a25076',
+    playtomicSlug: 'interpadel-warszawa',
   },
   {
     id: 'warsaw-padel-club',
     name: 'Warsaw Padel Club',
     source: 'playtomic',
     playtomicTenantId: 'e7284c78-e269-44ad-8f3d-a4d63089c80c',
+    playtomicSlug: 'warsaw-padel-club',
   },
   {
     id: 'rqt-sport',
     name: 'RQT Spot',
     source: 'playtomic',
     playtomicTenantId: '44340c7a-0951-47bd-8a7e-ccbe0703cdc3',
+    playtomicSlug: 'rqt-spot',
   },
   {
     id: 'padlovnia',

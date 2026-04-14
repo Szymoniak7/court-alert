@@ -41,7 +41,8 @@ export async function fetchPlaytomicSlots(
   clubId: string,
   clubName: string,
   tenantId: string,
-  date: string
+  date: string,
+  playtomicSlug?: string,
 ): Promise<TimeSlot[]> {
   const [courtNames, availRes] = await Promise.all([
     getCourtNames(tenantId),
@@ -78,7 +79,7 @@ export async function fetchPlaytomicSlots(
         startTime,
         endTime,
         duration: slot.duration,
-        bookingUrl: `https://playtomic.com/clubs/${clubId}`,
+        bookingUrl: `https://playtomic.com/clubs/${playtomicSlug || clubId}`,
       });
     }
   }
