@@ -1,0 +1,198 @@
+import * as cheerio from 'cheerio';
+import { TimeSlot } from '../types';
+
+const KLUBY_BASE = 'https://kluby.org';
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+// In-memory session cache for authenticated clubs
+interface Session {
+  cookies: string;
+  expiresAt: number;
+}
+const sessionCache: Record<string, Session> = {};
+
+function getGrafikUrl(slug: string, date: string): string {
+  if (slug === 'toro-padel') {
+    return `${KLUBY_BASE}/toro-padel/grafik?data_grafiku=${date}&dyscyplina=4`;
+  }
+  return `${KLUBY_BASE}/klub/${slug}/dedykowane/grafik?data_grafiku=${date}&dyscyplina=4`;
+}
+
+function padTime(t: string): string {
+  return t.includes(':') && t.indexOf(':') < 2 ? '0' + t : t;
+}
+
+function addMinutes(time: string, minutes: number): string {
+  const [h, m] = time.split(':').map(Number);
+  const total = h * 60 + m + minutes;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+async function loginKluby(slug: string): Promise<string> {
+  const email = process.env.KLUBY_EMAIL;
+  const password = process.env.KLUBY_PASSWORD;
+  if (!email || !password) throw new Error('KLUBY_EMAIL / KLUBY_PASSWORD not set');
+
+  const loginUrl = `${KLUBY_BASE}/klub/${slug}/dedykowane/logowanie`;
+
+  const body = new URLSearchParams({
+    konto: email,
+    haslo: password,
+    remember: '1',
+    page: `/klub/${slug}/dedykowane`,
+    logowanie_dedykowane: '1',
+    logowanie: '1',
+  });
+
+  const res = await fetch(loginUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': UA,
+      Referer: loginUrl,
+      Origin: KLUBY_BASE,
+    },
+    body: body.toString(),
+    redirect: 'manual',
+  });
+
+  // Collect Set-Cookie headers
+  const setCookies = res.headers.getSetCookie?.() ?? [];
+  if (!setCookies.length) throw new Error(`Login failed for ${slug} — no cookies returned`);
+
+  // Parse into "name=value" pairs
+  const cookies = setCookies
+    .map((c) => c.split(';')[0])
+    .join('; ');
+
+  return cookies;
+}
+
+async function getSession(slug: string): Promise<string> {
+  const cached = sessionCache[slug];
+  if (cached && Date.now() < cached.expiresAt) return cached.cookies;
+
+  const cookies = await loginKluby(slug);
+  sessionCache[slug] = {
+    cookies,
+    expiresAt: Date.now() + 23 * 60 * 60 * 1000, // 23h
+  };
+  return cookies;
+}
+
+async function fetchHtml(url: string, cookies?: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': UA,
+      ...(cookies ? { Cookie: cookies } : {}),
+    },
+    next: { revalidate: 300 },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.text();
+}
+
+function parseGrafikHtml(
+  html: string,
+  clubId: string,
+  clubName: string,
+  _slug: string,
+  date: string
+): TimeSlot[] {
+  const $ = cheerio.load(html);
+  const slots: TimeSlot[] = [];
+
+  const table = $('table').filter((_, el) =>
+    $(el).find('a[href*="/rezerwuj/"]').length > 0
+  ).first();
+
+  if (!table.length) return slots;
+
+  const courtNames: string[] = [];
+  table.find('tr').first().find('th, td').each((_, el) => {
+    const words = $(el).text().replace(/\s+/g, ' ').trim().split(' ');
+    courtNames.push(words.slice(0, 2).join(' ') || 'Kort');
+  });
+
+  const rowspanMap: Record<number, number> = {};
+
+  table.find('tr').each((rowIdx, row) => {
+    if (rowIdx === 0) return;
+    const tds = $(row).find('td');
+    if (!tds.length) return;
+
+    const rawTime = tds.first().text().trim();
+    if (!rawTime.match(/^\d{1,2}:\d{2}$/)) return;
+
+    const startTime = padTime(rawTime);
+    const endTime = addMinutes(startTime, 90);
+    let realColIndex = 1;
+
+    tds.each((i, td) => {
+      if (i === 0) return;
+      while (rowspanMap[realColIndex] > 0) {
+        rowspanMap[realColIndex]--;
+        realColIndex++;
+      }
+      const el = $(td);
+      const rowspan = parseInt(el.attr('rowspan') || '1');
+      if (rowspan > 1) rowspanMap[realColIndex] = rowspan - 1;
+
+      const link = el.find('a[href*="/rezerwuj/"]');
+      if (link.length) {
+        const href = link.attr('href') || '';
+        const urlParts = href.split('/');
+        const courtId = urlParts[urlParts.length - 2] || String(realColIndex);
+        const courtName = courtNames[realColIndex] || `Kort ${realColIndex}`;
+        slots.push({
+          courtId,
+          courtName,
+          clubId,
+          clubName,
+          date,
+          startTime,
+          endTime,
+          duration: 90,
+          bookingUrl: `${KLUBY_BASE}${href}`,
+        });
+      }
+      realColIndex++;
+    });
+  });
+
+  return slots;
+}
+
+export async function fetchKlubySlots(
+  clubId: string,
+  clubName: string,
+  slug: string,
+  date: string
+): Promise<TimeSlot[]> {
+  const html = await fetchHtml(getGrafikUrl(slug, date));
+  return parseGrafikHtml(html, clubId, clubName, slug, date);
+}
+
+export async function fetchKlubyAuthSlots(
+  clubId: string,
+  clubName: string,
+  slug: string,
+  date: string
+): Promise<TimeSlot[]> {
+  let cookies = await getSession(slug);
+  const url = getGrafikUrl(slug, date);
+  let html = await fetchHtml(url, cookies);
+
+  // If session expired, re-login once
+  if (html.includes('Musisz być zalogowany')) {
+    delete sessionCache[slug];
+    cookies = await getSession(slug);
+    html = await fetchHtml(url, cookies);
+  }
+
+  if (html.includes('Musisz być zalogowany')) {
+    throw new Error(`Auth failed for ${slug}`);
+  }
+
+  return parseGrafikHtml(html, clubId, clubName, slug, date);
+}
