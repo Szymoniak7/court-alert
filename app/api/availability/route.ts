@@ -12,18 +12,11 @@ function isInTimeRange(startTime: string, fromHour: number, toHour: number, date
 
   // For today: hide slots that have already started (Warsaw time)
   const now = new Date();
-  const warsawTime = new Intl.DateTimeFormat('pl-PL', {
-    timeZone: 'Europe/Warsaw',
-    hour: '2-digit', minute: '2-digit', year: 'numeric', month: '2-digit', day: '2-digit',
-    hour12: false,
-  }).formatToParts(now);
-  const get = (type: string) => parseInt(warsawTime.find(p => p.type === type)?.value || '0');
-  const todayWarsaw = `${get('year')}-${String(get('month')).padStart(2,'0')}-${String(get('day')).padStart(2,'0')}`;
-
+  const todayWarsaw = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' }); // "YYYY-MM-DD"
   if (date === todayWarsaw) {
-    const slotMinutes = h * 60 + m;
-    const nowMinutes = get('hour') * 60 + get('minute');
-    if (slotMinutes <= nowMinutes) return false;
+    const nowH = parseInt(now.toLocaleTimeString('en-GB', { timeZone: 'Europe/Warsaw', hour: '2-digit', hour12: false }));
+    const nowM = parseInt(now.toLocaleTimeString('en-GB', { timeZone: 'Europe/Warsaw', minute: '2-digit' }));
+    if (h * 60 + m <= nowH * 60 + nowM) return false;
   }
 
   return true;
