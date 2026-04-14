@@ -86,7 +86,7 @@ async function fetchHtml(url: string, cookies?: string): Promise<string> {
       'User-Agent': UA,
       ...(cookies ? { Cookie: cookies } : {}),
     },
-    next: { revalidate: 300 },
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.text();

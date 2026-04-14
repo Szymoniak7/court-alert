@@ -50,7 +50,7 @@ export async function fetchPlaytomicSlots(
       `${API_BASE}/availability?user_id=me&sport_id=PADEL` +
         `&start_min=${date}T00:00:00&start_max=${date}T23:59:59` +
         `&tenant_id=${tenantId}`,
-      { next: { revalidate: 300 } }
+      { cache: 'no-store' }
     ),
   ]);
 
