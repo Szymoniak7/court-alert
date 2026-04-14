@@ -6,9 +6,27 @@ import { TimeSlot } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
-function isInTimeRange(startTime: string, fromHour: number, toHour: number): boolean {
-  const [h] = startTime.split(':').map(Number);
-  return h >= fromHour && h < toHour;
+function isInTimeRange(startTime: string, fromHour: number, toHour: number, date: string): boolean {
+  const [h, m] = startTime.split(':').map(Number);
+  if (h < fromHour || h >= toHour) return false;
+
+  // For today: hide slots that have already started (Warsaw time)
+  const now = new Date();
+  const warsawTime = new Intl.DateTimeFormat('pl-PL', {
+    timeZone: 'Europe/Warsaw',
+    hour: '2-digit', minute: '2-digit', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour12: false,
+  }).formatToParts(now);
+  const get = (type: string) => parseInt(warsawTime.find(p => p.type === type)?.value || '0');
+  const todayWarsaw = `${get('year')}-${String(get('month')).padStart(2,'0')}-${String(get('day')).padStart(2,'0')}`;
+
+  if (date === todayWarsaw) {
+    const slotMinutes = h * 60 + m;
+    const nowMinutes = get('hour') * 60 + get('minute');
+    if (slotMinutes <= nowMinutes) return false;
+  }
+
+  return true;
 }
 
 function deduplicate(slots: TimeSlot[]): TimeSlot[] {
@@ -71,7 +89,7 @@ export async function GET(req: NextRequest) {
   });
 
   const filtered = allSlots.filter((s) =>
-    isInTimeRange(s.startTime, fromHour, toHour)
+    isInTimeRange(s.startTime, fromHour, toHour, s.date)
   );
 
   const deduped = deduplicate(filtered);
