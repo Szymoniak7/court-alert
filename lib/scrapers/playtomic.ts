@@ -65,7 +65,16 @@ export async function fetchPlaytomicSlots(
     const courtName = courtNames[resource.resource_id] || `Kort`;
 
     for (const slot of resource.slots) {
-      const startTime = slot.start_time.slice(0, 5); // "HH:MM"
+      // API returns start_time in UTC — convert to Europe/Warsaw local time
+      const utcDatetime = new Date(`${resource.start_date}T${slot.start_time}Z`);
+      const startTime = utcDatetime.toLocaleTimeString('en-GB', {
+        timeZone: 'Europe/Warsaw',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }); // "HH:MM"
+      const slotDate = utcDatetime.toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' }); // "YYYY-MM-DD"
+
       const [h, m] = startTime.split(':').map(Number);
       const endMinutes = h * 60 + m + slot.duration;
       const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
@@ -75,7 +84,7 @@ export async function fetchPlaytomicSlots(
         courtName,
         clubId,
         clubName,
-        date,
+        date: slotDate,
         startTime,
         endTime,
         duration: slot.duration,
