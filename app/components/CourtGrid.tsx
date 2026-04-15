@@ -120,13 +120,11 @@ export default function CourtGrid({ slots, clubs, selectedClubs }: Props) {
                             );
                           }
 
-                          const cellColor = count === 1 ? color?.cell1 : count === 2 ? color?.cell2 : color?.cell3;
-
                           return (
                             <td key={club.id} className="py-2 px-2 text-center">
                               <button
                                 onClick={() => setModal(cellSlots)}
-                                className={`inline-flex flex-col items-center justify-center w-full rounded-lg border px-2 py-1.5 transition cursor-pointer ${cellColor}`}
+                                className={`inline-flex flex-col items-center justify-center w-full rounded-lg border px-2 py-1.5 transition cursor-pointer ${color?.cell}`}
                               >
                                 <span className="text-sm font-bold tabular-nums leading-none">{count}</span>
                                 <span className="text-[10px] opacity-70 mt-0.5 leading-none">
