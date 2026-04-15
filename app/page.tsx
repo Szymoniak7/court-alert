@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TimeSlot } from '@/lib/types';
 import { CLUBS } from '@/lib/clubs';
-import { PRESETS, formatDatePL } from '@/lib/presets';
+import { DAY_OPTIONS, TIME_OPTIONS, getDates } from '@/lib/presets';
 import { CLUB_COLORS } from './components/colors';
 import CourtGrid from './components/CourtGrid';
 import CourtGridMobile from './components/CourtGridMobile';
 
 export default function Home() {
-  const [activePreset, setActivePreset] = useState(PRESETS[0].id);
+  const [selectedDay, setSelectedDay] = useState('weekdays');
+  const [selectedTime, setSelectedTime] = useState('afterwork');
   const [selectedClubs, setSelectedClubs] = useState<string[]>(CLUBS.map((c) => c.id));
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -17,7 +18,8 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const preset = PRESETS.find((p) => p.id === activePreset)!;
+  const timeOpt = TIME_OPTIONS.find((t) => t.id === selectedTime)!;
+  const dayOpt = DAY_OPTIONS.find((d) => d.id === selectedDay)!;
 
   const fetchSlots = useCallback(async () => {
     abortRef.current?.abort();
@@ -25,11 +27,11 @@ export default function Home() {
     abortRef.current = ctrl;
     setLoading(true);
     try {
-      const dates = preset.getDates();
+      const dates = getDates(selectedDay);
       const params = new URLSearchParams({
         dates: dates.join(','),
-        from: String(preset.fromHour),
-        to: String(preset.toHour),
+        from: String(timeOpt.fromHour),
+        to: String(timeOpt.toHour),
         clubs: selectedClubs.join(','),
       });
       const res = await fetch(`/api/availability?${params}`, { signal: ctrl.signal });
@@ -42,7 +44,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [activePreset, selectedClubs, preset]);
+  }, [selectedDay, selectedTime, selectedClubs, timeOpt]);
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
@@ -67,7 +69,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-2">
           {lastUpdated && !loading && (
-            <span className="hidden sm:inline text-xs text-white/20">
+            <span className="text-xs text-white/20">
               {lastUpdated.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
@@ -85,30 +87,52 @@ export default function Home() {
       <div className="flex flex-1 min-h-0">
 
         {/* Sidebar — desktop */}
-        <aside className="hidden lg:flex flex-col w-52 border-r border-white/5 px-3 py-5 flex-shrink-0 gap-6 bg-[#080810]">
+        <aside className="hidden lg:flex flex-col w-56 border-r border-white/5 px-3 py-5 flex-shrink-0 gap-6 bg-[#080810]">
 
+          {/* Kiedy gram */}
           <div>
-            <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 px-2">Widok</p>
+            <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 px-2">Kiedy gram?</p>
             <div className="space-y-0.5">
-              {PRESETS.map((p) => (
+              {DAY_OPTIONS.map((opt) => (
                 <button
-                  key={p.id}
-                  onClick={() => setActivePreset(p.id)}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl transition group ${
-                    activePreset === p.id
-                      ? 'bg-indigo-500/15 border border-indigo-500/20'
-                      : 'border border-transparent hover:bg-white/5'
+                  key={opt.id}
+                  onClick={() => setSelectedDay(opt.id)}
+                  className={`w-full text-left px-3 py-2 rounded-xl transition border ${
+                    selectedDay === opt.id
+                      ? 'bg-indigo-500/15 border-indigo-500/20 text-indigo-300'
+                      : 'border-transparent text-white/50 hover:bg-white/5 hover:text-white/70'
                   }`}
                 >
-                  <span className={`block text-sm font-medium ${activePreset === p.id ? 'text-indigo-300' : 'text-white/60 group-hover:text-white/80'}`}>
-                    {p.label}
-                  </span>
-                  <span className="block text-[11px] text-white/25 mt-0.5">{p.sublabel}</span>
+                  <span className="text-sm font-medium">{opt.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
+          {/* O której */}
+          <div>
+            <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 px-2">O której?</p>
+            <div className="space-y-0.5">
+              {TIME_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setSelectedTime(opt.id)}
+                  className={`w-full text-left px-3 py-2 rounded-xl transition border ${
+                    selectedTime === opt.id
+                      ? 'bg-indigo-500/15 border-indigo-500/20'
+                      : 'border-transparent hover:bg-white/5'
+                  }`}
+                >
+                  <span className={`block text-sm font-medium ${selectedTime === opt.id ? 'text-indigo-300' : 'text-white/50'}`}>
+                    {opt.label}
+                  </span>
+                  <span className="block text-[11px] text-white/25 mt-0.5">{opt.sublabel}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Kluby */}
           <div>
             <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 px-2">Kluby</p>
             <div className="space-y-0.5">
@@ -119,11 +143,11 @@ export default function Home() {
                   <button
                     key={club.id}
                     onClick={() => toggleClub(club.id)}
-                    className={`w-full flex items-center gap-2.5 text-left px-3 py-2 rounded-xl transition border ${
-                      active ? 'border-transparent' : 'border-transparent opacity-40'
+                    className={`w-full flex items-center gap-2.5 text-left px-3 py-2 rounded-xl transition border border-transparent ${
+                      active ? '' : 'opacity-40'
                     } hover:bg-white/5`}
                   >
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 transition ${active ? color?.dot : 'bg-white/20'}`} />
+                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${active ? color?.dot : 'bg-white/20'}`} />
                     <span className="text-xs text-white/70 truncate">{club.name}</span>
                   </button>
                 );
@@ -135,26 +159,48 @@ export default function Home() {
         {/* Main */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-          {/* Mobile presets */}
-          <div className="lg:hidden border-b border-white/5 px-4 py-2.5">
-            <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-              {PRESETS.map((p) => (
+          {/* Mobile — Kiedy gram */}
+          <div className="lg:hidden border-b border-white/5 px-4 pt-3 pb-2">
+            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">Kiedy gram?</p>
+            <div className="flex gap-1.5">
+              {DAY_OPTIONS.map((opt) => (
                 <button
-                  key={p.id}
-                  onClick={() => setActivePreset(p.id)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                    activePreset === p.id
-                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                      : 'bg-white/5 text-white/40 border border-transparent'
+                  key={opt.id}
+                  onClick={() => setSelectedDay(opt.id)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
+                    selectedDay === opt.id
+                      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                      : 'bg-white/5 text-white/40 border-transparent'
                   }`}
                 >
-                  {p.mobileLabel ?? p.label}
+                  {opt.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Mobile clubs */}
+          {/* Mobile — O której */}
+          <div className="lg:hidden border-b border-white/5 px-4 pt-2.5 pb-2">
+            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">O której?</p>
+            <div className="flex gap-1.5">
+              {TIME_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setSelectedTime(opt.id)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
+                    selectedTime === opt.id
+                      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                      : 'bg-white/5 text-white/40 border-transparent'
+                  }`}
+                >
+                  <span className="block">{opt.label}</span>
+                  <span className="block text-[10px] opacity-60 mt-0.5">{opt.sublabel}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile — Kluby */}
           <div className="lg:hidden border-b border-white/5 px-4 py-2">
             <div className="flex flex-wrap gap-1.5">
               {CLUBS.map((club) => {
@@ -191,8 +237,9 @@ export default function Home() {
 
             {/* Status */}
             <div className="flex items-center gap-2 mb-6">
-              <h2 className="text-sm font-semibold text-white/80">{preset.label}</h2>
-              <span className="text-xs text-white/25">{preset.sublabel}</span>
+              <h2 className="text-sm font-semibold text-white/80">{dayOpt.label}</h2>
+              <span className="text-xs text-white/25">·</span>
+              <span className="text-xs text-white/40">{timeOpt.label} <span className="text-white/25">{timeOpt.sublabel}</span></span>
               {!loading && totalSlots > 0 && (
                 <span className="ml-auto text-xs text-white/25">
                   {totalSlots} {totalSlots === 1 ? 'slot' : 'slotów'}

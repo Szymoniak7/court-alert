@@ -1,13 +1,3 @@
-export interface Preset {
-  id: string;
-  label: string;
-  mobileLabel?: string;
-  sublabel: string;
-  fromHour: number;
-  toHour: number; // 24 means midnight
-  getDates: () => string[];
-}
-
 function formatDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
@@ -18,7 +8,6 @@ function addDays(d: Date, n: number): Date {
   return r;
 }
 
-// Returns next N days filtered by allowed weekdays (0=Sun,1=Mon,...,6=Sat)
 function nextDays(n: number, allowedDays?: number[]): string[] {
   const today = new Date();
   const result: string[] = [];
@@ -31,68 +20,43 @@ function nextDays(n: number, allowedDays?: number[]): string[] {
   return result;
 }
 
-function thisWeekDates(): string[] {
-  const today = new Date();
-  const day = today.getDay(); // 0=Sun
-  const daysUntilSunday = day === 0 ? 0 : 7 - day;
-  const result: string[] = [];
-  for (let i = 0; i <= daysUntilSunday; i++) {
-    result.push(formatDate(addDays(today, i)));
-  }
-  return result;
+export interface DayOption {
+  id: string;
+  label: string;
+  days: number[]; // 0=Sun,1=Mon,...,6=Sat
 }
 
-export const PRESETS: Preset[] = [
-  {
-    id: 'weekday-evening',
-    label: 'Wieczory',
-    sublabel: 'pon–pt · 17–22',
-    fromHour: 17,
-    toHour: 22,
-    getDates: () => nextDays(7, [1, 2, 3, 4, 5]),
-  },
-  {
-    id: 'weekend-morning',
-    label: 'Poranek',
-    sublabel: 'sob–niedz · 6–12',
-    fromHour: 6,
-    toHour: 12,
-    getDates: () => nextDays(7, [6, 0]),
-  },
-  {
-    id: 'weekend-day',
-    label: 'Dzień',
-    sublabel: 'sob–niedz · 12–20',
-    fromHour: 12,
-    toHour: 20,
-    getDates: () => nextDays(7, [6, 0]),
-  },
-  {
-    id: 'weekend-evening',
-    label: 'Wieczór',
-    sublabel: 'sob–niedz · 20–24',
-    fromHour: 20,
-    toHour: 24,
-    getDates: () => nextDays(7, [6, 0]),
-  },
-  {
-    id: 'this-week',
-    label: 'Ten tydzień',
-    mobileLabel: 'Tydzień',
-    sublabel: 'dziś → niedziela',
-    fromHour: 0,
-    toHour: 24,
-    getDates: thisWeekDates,
-  },
+export interface TimeOption {
+  id: string;
+  label: string;
+  sublabel: string;
+  fromHour: number;
+  toHour: number;
+}
+
+export const DAY_OPTIONS: DayOption[] = [
+  { id: 'weekdays', label: 'Pon–Pt',        days: [1, 2, 3, 4, 5] },
+  { id: 'weekend',  label: 'Weekend',        days: [6, 0] },
+  { id: 'all',      label: 'Cały tydzień',   days: [0, 1, 2, 3, 4, 5, 6] },
 ];
 
-const PL_DAYS = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
-const PL_DAYS_SHORT = ['Niedz', 'Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob'];
+export const TIME_OPTIONS: TimeOption[] = [
+  { id: 'morning',   label: 'Rano',      sublabel: '6–12',  fromHour: 6,  toHour: 12 },
+  { id: 'day',       label: 'W dzień',   sublabel: '12–17', fromHour: 12, toHour: 17 },
+  { id: 'afterwork', label: 'Po pracy',  sublabel: '16–22', fromHour: 16, toHour: 22 },
+  { id: 'evening',   label: 'Wieczór',   sublabel: '19–24', fromHour: 19, toHour: 24 },
+];
 
-export function formatDatePL(dateStr: string, short = false): string {
+export function getDates(dayOptionId: string): string[] {
+  const opt = DAY_OPTIONS.find((d) => d.id === dayOptionId)!;
+  return nextDays(14, opt.days);
+}
+
+const PL_DAYS = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+
+export function formatDatePL(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
-  const dayName = short ? PL_DAYS_SHORT[d.getDay()] : PL_DAYS[d.getDay()];
   const day = d.getDate();
   const month = d.getMonth() + 1;
-  return `${dayName} ${day}.${String(month).padStart(2, '0')}`;
+  return `${PL_DAYS[d.getDay()]} ${day}.${String(month).padStart(2, '0')}`;
 }
