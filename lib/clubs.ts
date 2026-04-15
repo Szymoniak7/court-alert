@@ -3,6 +3,7 @@ export type ClubSource = 'kluby' | 'kluby-auth' | 'playtomic';
 export interface Club {
   id: string;
   name: string;
+  shortName?: string;
   source: ClubSource;
   // kluby.org slug
   klubySlug?: string;
@@ -41,6 +42,7 @@ export const CLUBS: Club[] = [
   {
     id: 'warsaw-padel-club',
     name: 'Warsaw Padel Club',
+    shortName: 'WPC',
     source: 'playtomic',
     playtomicTenantId: 'e7284c78-e269-44ad-8f3d-a4d63089c80c',
     playtomicSlug: 'warsaw-padel-club',

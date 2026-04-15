@@ -169,7 +169,7 @@ export default function Home() {
                     }`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${active ? color?.dot : 'bg-white/20'}`} />
-                    {club.name.split(' ')[0]}
+                    {club.shortName ?? club.name.split(' ')[0]}
                   </button>
                 );
               })}

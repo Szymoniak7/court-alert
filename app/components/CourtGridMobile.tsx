@@ -92,7 +92,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                               className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition ${color?.cell}`}
                             >
                               <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${color?.dot}`} />
-                              <span className="text-xs font-medium">{club.name.split(' ')[0]}</span>
+                              <span className="text-xs font-medium">{club.shortName ?? club.name.split(' ')[0]}</span>
                               <span className="text-xs font-bold tabular-nums">{count}</span>
                             </button>
                           );
