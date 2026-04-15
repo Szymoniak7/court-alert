@@ -12,9 +12,11 @@ export default function Home() {
   const [selectedDay, setSelectedDay] = useState(() =>
     typeof window !== 'undefined' ? (localStorage.getItem('ca_day') ?? 'weekdays') : 'weekdays'
   );
-  const [selectedTime, setSelectedTime] = useState(() =>
-    typeof window !== 'undefined' ? (localStorage.getItem('ca_time') ?? 'afterwork') : 'afterwork'
-  );
+  const [selectedTimes, setSelectedTimes] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return ['afterwork'];
+    const saved = localStorage.getItem('ca_times');
+    return saved ? JSON.parse(saved) : ['afterwork'];
+  });
   const [selectedClubs, setSelectedClubs] = useState<string[]>(() => {
     if (typeof window === 'undefined') return CLUBS.map((c) => c.id);
     const saved = localStorage.getItem('ca_clubs');
@@ -26,7 +28,9 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const timeOpt = TIME_OPTIONS.find((t) => t.id === selectedTime)!;
+  const activeTimes = TIME_OPTIONS.filter((t) => selectedTimes.includes(t.id));
+  const fromHour = activeTimes.length ? Math.min(...activeTimes.map((t) => t.fromHour)) : 0;
+  const toHour = activeTimes.length ? Math.max(...activeTimes.map((t) => t.toHour)) : 24;
   const dayOpt = DAY_OPTIONS.find((d) => d.id === selectedDay)!;
 
   const fetchSlots = useCallback(async () => {
@@ -38,8 +42,8 @@ export default function Home() {
       const dates = getDates(selectedDay);
       const params = new URLSearchParams({
         dates: dates.join(','),
-        from: String(timeOpt.fromHour),
-        to: String(timeOpt.toHour),
+        from: String(fromHour),
+        to: String(toHour),
         clubs: selectedClubs.join(','),
       });
       const res = await fetch(`/api/availability?${params}`, { signal: ctrl.signal });
@@ -52,7 +56,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDay, selectedTime, selectedClubs, timeOpt]);
+  }, [selectedDay, selectedTimes, selectedClubs, fromHour, toHour]);
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
@@ -61,9 +65,14 @@ export default function Home() {
     localStorage.setItem('ca_day', id);
   };
 
-  const handleTimeChange = (id: string) => {
-    setSelectedTime(id);
-    localStorage.setItem('ca_time', id);
+  const toggleTime = (id: string) => {
+    setSelectedTimes((prev) => {
+      const next = prev.includes(id)
+        ? prev.length > 1 ? prev.filter((t) => t !== id) : prev
+        : [...prev, id];
+      localStorage.setItem('ca_times', JSON.stringify(next));
+      return next;
+    });
   };
 
   const toggleClub = (id: string) => {
@@ -137,14 +146,14 @@ export default function Home() {
               {TIME_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => handleTimeChange(opt.id)}
+                  onClick={() => toggleTime(opt.id)}
                   className={`w-full text-left px-3 py-2 rounded-xl transition border ${
-                    selectedTime === opt.id
+                    selectedTimes.includes(opt.id)
                       ? 'bg-indigo-500/15 border-indigo-500/20'
                       : 'border-transparent hover:bg-white/5'
                   }`}
                 >
-                  <span className={`block text-sm font-medium ${selectedTime === opt.id ? 'text-indigo-300' : 'text-white/50'}`}>
+                  <span className={`block text-sm font-medium ${selectedTimes.includes(opt.id) ? 'text-indigo-300' : 'text-white/50'}`}>
                     {opt.label}
                   </span>
                   <span className="block text-[11px] text-white/25 mt-0.5">{opt.sublabel}</span>
@@ -207,9 +216,9 @@ export default function Home() {
               {TIME_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => handleTimeChange(opt.id)}
+                  onClick={() => toggleTime(opt.id)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
-                    selectedTime === opt.id
+                    selectedTimes.includes(opt.id)
                       ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
                       : 'bg-white/5 text-white/40 border-transparent'
                   }`}
@@ -260,7 +269,7 @@ export default function Home() {
             <div className="flex items-center gap-2 mb-6">
               <h2 className="text-sm font-semibold text-white/80">{dayOpt.label}</h2>
               <span className="text-xs text-white/25">·</span>
-              <span className="text-xs text-white/40">{timeOpt.label} <span className="text-white/25">{timeOpt.sublabel}</span></span>
+              <span className="text-xs text-white/25">{fromHour}:00 – {toHour === 24 ? '24:00' : `${toHour}:00`}</span>
               {!loading && totalSlots > 0 && (
                 <span className="ml-auto text-xs text-white/25">
                   {totalSlots} {totalSlots === 1 ? 'slot' : 'slotów'}
