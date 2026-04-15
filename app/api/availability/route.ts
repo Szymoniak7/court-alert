@@ -23,20 +23,13 @@ function isInTimeRange(startTime: string, fromHour: number, toHour: number, date
 }
 
 function deduplicate(slots: TimeSlot[]): TimeSlot[] {
-  const seen = new Map<string, TimeSlot>();
-  for (const slot of slots) {
-    const key = `${slot.clubId}|${slot.courtId}|${slot.date}|${slot.startTime}`;
-    const existing = seen.get(key);
-    if (!existing) {
-      seen.set(key, slot);
-    } else {
-      const preferNew =
-        (slot.duration === 90 && existing.duration !== 90) ||
-        (slot.duration !== 90 && existing.duration !== 90 && slot.duration < existing.duration);
-      if (preferNew) seen.set(key, slot);
-    }
-  }
-  return Array.from(seen.values());
+  const seen = new Set<string>();
+  return slots.filter((slot) => {
+    const key = `${slot.clubId}|${slot.courtId}|${slot.date}|${slot.startTime}|${slot.duration}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function GET(req: NextRequest) {

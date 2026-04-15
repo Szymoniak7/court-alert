@@ -109,7 +109,7 @@ export default function CourtGrid({ slots, clubs, selectedClubs }: Props) {
                         {/* Club cells */}
                         {visibleClubs.map((club) => {
                           const cellSlots = grid[date]?.[time]?.[club.id] || [];
-                          const count = cellSlots.length;
+                          const count = new Set(cellSlots.map((s) => s.courtId)).size;
                           const color = CLUB_COLORS[club.id];
 
                           if (!count) {

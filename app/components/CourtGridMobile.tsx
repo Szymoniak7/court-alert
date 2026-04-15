@@ -92,7 +92,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                       <div className="flex flex-wrap gap-1.5 flex-1">
                         {clubsWithSlots.map((club) => {
                           const cellSlots = grid[date]?.[time]?.[club.id] || [];
-                          const count = cellSlots.length;
+                          const count = new Set(cellSlots.map((s) => s.courtId)).size;
                           const color = CLUB_COLORS[club.id];
 
                           return (

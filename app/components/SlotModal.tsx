@@ -19,21 +19,30 @@ export default function SlotModal({ slots, onClose }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  // Group by duration, sorted ascending
+  const byDuration = slots.reduce<Record<number, TimeSlot[]>>((acc, slot) => {
+    if (!acc[slot.duration]) acc[slot.duration] = [];
+    acc[slot.duration].push(slot);
+    return acc;
+  }, {});
+  const durations = Object.keys(byDuration).map(Number).sort((a, b) => a - b);
+
+  // Count unique courts
+  const uniqueCourts = new Set(slots.map((s) => s.courtId)).size;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
       onClick={onClose}
     >
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-      {/* Modal */}
       <div
         className="relative w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`px-5 py-4 border-b border-gray-800`}>
+        <div className="px-5 py-4 border-b border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <span className={`w-2.5 h-2.5 rounded-full ${color?.dot || 'bg-gray-400'}`} />
@@ -52,26 +61,35 @@ export default function SlotModal({ slots, onClose }: Props) {
               {first.date.slice(5).replace('-', '.')}
             </span>
           </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {uniqueCourts} {uniqueCourts === 1 ? 'kort' : uniqueCourts < 5 ? 'korty' : 'kortów'} · {durations.join(', ')} min
+          </p>
         </div>
 
-        {/* Court list */}
-        <div className="px-5 py-3 space-y-2 max-h-72 overflow-y-auto">
-          {slots.map((slot, i) => (
-            <a
-              key={i}
-              href={slot.bookingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between p-3 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-[0.98] transition group"
-            >
-              <div>
-                <p className="text-sm font-medium text-white">{slot.courtName}</p>
-                <p className="text-xs text-gray-400 mt-0.5">do {slot.endTime} · {slot.duration} min</p>
+        {/* Slots grouped by duration */}
+        <div className="px-5 py-3 space-y-4 max-h-80 overflow-y-auto">
+          {durations.map((duration) => (
+            <div key={duration}>
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-2">
+                {duration} min · do {byDuration[duration][0].endTime}
+              </p>
+              <div className="space-y-1.5">
+                {byDuration[duration].map((slot, i) => (
+                  <a
+                    key={i}
+                    href={slot.bookingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-3 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-[0.98] transition group"
+                  >
+                    <p className="text-sm font-medium text-white">{slot.courtName}</p>
+                    <span className="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 transition">
+                      Rezerwuj →
+                    </span>
+                  </a>
+                ))}
               </div>
-              <span className="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 transition">
-                Rezerwuj →
-              </span>
-            </a>
+            </div>
           ))}
         </div>
 
