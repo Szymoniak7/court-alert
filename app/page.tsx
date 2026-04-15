@@ -156,7 +156,7 @@ export default function Home() {
 
           {/* Mobile clubs */}
           <div className="lg:hidden border-b border-white/5 px-4 py-2">
-            <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            <div className="flex flex-wrap gap-1.5">
               {CLUBS.map((club) => {
                 const active = selectedClubs.includes(club.id);
                 const color = CLUB_COLORS[club.id];
@@ -164,11 +164,11 @@ export default function Home() {
                   <button
                     key={club.id}
                     onClick={() => toggleClub(club.id)}
-                    className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border transition ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border transition ${
                       active ? 'border-white/15 text-white/70' : 'border-white/5 text-white/20'
                     }`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${active ? color?.dot : 'bg-white/20'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${active ? color?.dot : 'bg-white/20'}`} />
                     {club.name.split(' ')[0]}
                   </button>
                 );
