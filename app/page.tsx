@@ -9,9 +9,17 @@ import CourtGrid from './components/CourtGrid';
 import CourtGridMobile from './components/CourtGridMobile';
 
 export default function Home() {
-  const [selectedDay, setSelectedDay] = useState('weekdays');
-  const [selectedTime, setSelectedTime] = useState('afterwork');
-  const [selectedClubs, setSelectedClubs] = useState<string[]>(CLUBS.map((c) => c.id));
+  const [selectedDay, setSelectedDay] = useState(() =>
+    typeof window !== 'undefined' ? (localStorage.getItem('ca_day') ?? 'weekdays') : 'weekdays'
+  );
+  const [selectedTime, setSelectedTime] = useState(() =>
+    typeof window !== 'undefined' ? (localStorage.getItem('ca_time') ?? 'afterwork') : 'afterwork'
+  );
+  const [selectedClubs, setSelectedClubs] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return CLUBS.map((c) => c.id);
+    const saved = localStorage.getItem('ca_clubs');
+    return saved ? JSON.parse(saved) : CLUBS.map((c) => c.id);
+  });
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,10 +56,23 @@ export default function Home() {
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
-  const toggleClub = (id: string) =>
-    setSelectedClubs((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    );
+  const handleDayChange = (id: string) => {
+    setSelectedDay(id);
+    localStorage.setItem('ca_day', id);
+  };
+
+  const handleTimeChange = (id: string) => {
+    setSelectedTime(id);
+    localStorage.setItem('ca_time', id);
+  };
+
+  const toggleClub = (id: string) => {
+    setSelectedClubs((prev) => {
+      const next = prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id];
+      localStorage.setItem('ca_clubs', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const totalSlots = slots.length;
 
@@ -96,7 +117,7 @@ export default function Home() {
               {DAY_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => setSelectedDay(opt.id)}
+                  onClick={() => handleDayChange(opt.id)}
                   className={`w-full text-left px-3 py-2 rounded-xl transition border ${
                     selectedDay === opt.id
                       ? 'bg-indigo-500/15 border-indigo-500/20 text-indigo-300'
@@ -116,7 +137,7 @@ export default function Home() {
               {TIME_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => setSelectedTime(opt.id)}
+                  onClick={() => handleTimeChange(opt.id)}
                   className={`w-full text-left px-3 py-2 rounded-xl transition border ${
                     selectedTime === opt.id
                       ? 'bg-indigo-500/15 border-indigo-500/20'
@@ -166,7 +187,7 @@ export default function Home() {
               {DAY_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => setSelectedDay(opt.id)}
+                  onClick={() => handleDayChange(opt.id)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
                     selectedDay === opt.id
                       ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
@@ -186,7 +207,7 @@ export default function Home() {
               {TIME_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => setSelectedTime(opt.id)}
+                  onClick={() => handleTimeChange(opt.id)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
                     selectedTime === opt.id
                       ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
