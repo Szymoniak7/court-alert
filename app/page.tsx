@@ -6,6 +6,7 @@ import { CLUBS } from '@/lib/clubs';
 import { PRESETS, formatDatePL } from '@/lib/presets';
 import { CLUB_COLORS } from './components/colors';
 import CourtGrid from './components/CourtGrid';
+import CourtGridMobile from './components/CourtGridMobile';
 
 export default function Home() {
   const [activePreset, setActivePreset] = useState(PRESETS[0].id);
@@ -208,13 +209,26 @@ export default function Home() {
               </div>
             )}
 
-            {/* Grid */}
+            {/* Grid — desktop */}
             {!loading && slots.length > 0 && (
-              <CourtGrid
-                slots={slots}
-                clubs={CLUBS}
-                selectedClubs={selectedClubs}
-              />
+              <div className="hidden lg:block">
+                <CourtGrid
+                  slots={slots}
+                  clubs={CLUBS}
+                  selectedClubs={selectedClubs}
+                />
+              </div>
+            )}
+
+            {/* Grid — mobile */}
+            {!loading && slots.length > 0 && (
+              <div className="lg:hidden">
+                <CourtGridMobile
+                  slots={slots}
+                  clubs={CLUBS}
+                  selectedClubs={selectedClubs}
+                />
+              </div>
             )}
 
             {/* Errors */}
