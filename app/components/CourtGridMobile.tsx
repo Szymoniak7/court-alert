@@ -7,6 +7,16 @@ import { CLUB_COLORS } from './colors';
 import { formatDatePL } from '@/lib/presets';
 import SlotModal from './SlotModal';
 
+function CourtIcon({ className }: { className?: string }) {
+  return (
+    <svg width="11" height="9" viewBox="0 0 11 9" fill="none" className={className}>
+      <rect x="0.5" y="0.5" width="10" height="8" rx="0.75" stroke="currentColor" strokeWidth="0.9"/>
+      <line x1="5.5" y1="0.5" x2="5.5" y2="8.5" stroke="currentColor" strokeWidth="0.75"/>
+      <line x1="0.5" y1="4.5" x2="10.5" y2="4.5" stroke="currentColor" strokeWidth="0.75"/>
+    </svg>
+  );
+}
+
 interface Props {
   slots: TimeSlot[];
   clubs: Club[];
@@ -93,6 +103,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                             >
                               <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${color?.dot}`} />
                               <span className="text-xs font-medium">{club.shortName ?? club.name.split(' ')[0]}</span>
+                              <CourtIcon className="opacity-50" />
                               <span className="text-xs font-bold tabular-nums">{count}</span>
                             </button>
                           );
