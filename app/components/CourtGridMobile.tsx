@@ -9,10 +9,10 @@ import SlotModal from './SlotModal';
 
 function CourtIcon({ className }: { className?: string }) {
   return (
-    <svg width="11" height="9" viewBox="0 0 11 9" fill="none" className={className}>
-      <rect x="0.5" y="0.5" width="10" height="8" rx="0.75" stroke="currentColor" strokeWidth="0.9"/>
-      <line x1="5.5" y1="0.5" x2="5.5" y2="8.5" stroke="currentColor" strokeWidth="0.75"/>
-      <line x1="0.5" y1="4.5" x2="10.5" y2="4.5" stroke="currentColor" strokeWidth="0.75"/>
+    <svg width="14" height="11" viewBox="0 0 14 11" fill="none" className={className}>
+      <rect x="0.5" y="0.5" width="13" height="10" rx="1" stroke="currentColor" strokeWidth="1"/>
+      <line x1="7" y1="0.5" x2="7" y2="10.5" stroke="currentColor" strokeWidth="0.9"/>
+      <line x1="0.5" y1="5.5" x2="13.5" y2="5.5" stroke="currentColor" strokeWidth="0.9"/>
     </svg>
   );
 }
@@ -75,21 +75,21 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
               </div>
 
               {/* Time rows */}
-              <div className="space-y-2">
+              <div className="divide-y divide-white/5">
                 {dateTimes.map((time) => {
                   const clubsWithSlots = visibleClubs.filter(
                     (c) => (grid[date]?.[time]?.[c.id]?.length || 0) > 0
                   );
 
                   return (
-                    <div key={time} className="flex items-start gap-3">
+                    <div key={time} className="flex items-center gap-3 py-2.5">
                       {/* Time */}
-                      <span className="text-sm font-mono font-semibold text-gray-400 tabular-nums w-12 pt-1.5 flex-shrink-0">
+                      <span className="text-sm font-mono font-semibold text-gray-400 tabular-nums w-12 flex-shrink-0">
                         {time}
                       </span>
 
                       {/* Club chips */}
-                      <div className="flex flex-wrap gap-2 flex-1">
+                      <div className="flex flex-wrap gap-1.5 flex-1">
                         {clubsWithSlots.map((club) => {
                           const cellSlots = grid[date]?.[time]?.[club.id] || [];
                           const count = cellSlots.length;
@@ -99,11 +99,11 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                             <button
                               key={club.id}
                               onClick={() => setModal(cellSlots)}
-                              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition ${color?.cell}`}
+                              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition ${color?.cell}`}
                             >
                               <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${color?.dot}`} />
                               <span className="text-xs font-medium">{club.shortName ?? club.name.split(' ')[0]}</span>
-                              <CourtIcon className="opacity-50" />
+                              <CourtIcon className="opacity-60" />
                               <span className="text-xs font-bold tabular-nums">{count}</span>
                             </button>
                           );
