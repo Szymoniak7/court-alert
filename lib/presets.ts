@@ -1,6 +1,7 @@
 export interface Preset {
   id: string;
   label: string;
+  mobileLabel?: string;
   sublabel: string;
   fromHour: number;
   toHour: number; // 24 means midnight
@@ -77,6 +78,7 @@ export const PRESETS: Preset[] = [
   {
     id: 'this-week',
     label: 'Ten tydzień',
+    mobileLabel: 'Tydzień',
     sublabel: 'dziś → niedziela',
     fromHour: 0,
     toHour: 24,

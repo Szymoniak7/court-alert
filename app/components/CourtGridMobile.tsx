@@ -68,7 +68,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
           return (
             <div key={date}>
               {/* Date header */}
-              <div className="flex items-center gap-3 mb-3 px-1">
+              <div className="flex items-center gap-3 mb-3 px-1 sticky top-0 z-10 bg-[#080810] py-2 -mx-4 px-4">
                 <h3 className="text-base font-semibold text-white">{formatDatePL(date)}</h3>
                 <div className="flex-1 h-px bg-gray-800" />
                 <span className="text-xs text-gray-600">{totalForDate} slotów</span>

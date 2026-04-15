@@ -148,7 +148,7 @@ export default function Home() {
                       : 'bg-white/5 text-white/40 border border-transparent'
                   }`}
                 >
-                  {p.label}
+                  {p.mobileLabel ?? p.label}
                 </button>
               ))}
             </div>
