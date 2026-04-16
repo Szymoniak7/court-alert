@@ -9,9 +9,12 @@ import CourtGrid from './components/CourtGrid';
 import CourtGridMobile from './components/CourtGridMobile';
 
 export default function Home() {
-  const [selectedDay, setSelectedDay] = useState(() =>
-    typeof window !== 'undefined' ? (localStorage.getItem('ca_day') ?? 'weekdays') : 'weekdays'
-  );
+  const VALID_DAY_IDS = DAY_OPTIONS.map((d) => d.id);
+  const [selectedDay, setSelectedDay] = useState(() => {
+    if (typeof window === 'undefined') return 'weekdays';
+    const saved = localStorage.getItem('ca_day');
+    return saved && VALID_DAY_IDS.includes(saved) ? saved : 'weekdays';
+  });
   const [selectedTimes, setSelectedTimes] = useState<string[]>(() => {
     if (typeof window === 'undefined') return ['afterwork'];
     const saved = localStorage.getItem('ca_times');
@@ -38,7 +41,7 @@ export default function Home() {
   const activeTimes = TIME_OPTIONS.filter((t) => selectedTimes.includes(t.id));
   const fromHour = activeTimes.length ? Math.min(...activeTimes.map((t) => t.fromHour)) : 0;
   const toHour = activeTimes.length ? Math.max(...activeTimes.map((t) => t.toHour)) : 24;
-  const dayOpt = DAY_OPTIONS.find((d) => d.id === selectedDay)!;
+  const dayOpt = DAY_OPTIONS.find((d) => d.id === selectedDay) ?? DAY_OPTIONS[0];
 
   const fetchSlots = useCallback(async () => {
     abortRef.current?.abort();
@@ -55,20 +58,32 @@ export default function Home() {
         clubs: selectedClubs.join(','),
       });
       const res = await fetch(`/api/availability?${params}`, { signal: ctrl.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setSlots(data.slots || []);
       setErrors(data.errors || []);
       setLastUpdated(new Date());
       hasDataRef.current = true;
     } catch (e: unknown) {
-      if (e instanceof Error && e.name !== 'AbortError') console.error(e);
+      if (e instanceof Error && e.name !== 'AbortError') {
+        console.error(e);
+        setErrors((prev) => prev.length ? prev : ['Błąd połączenia z serwerem']);
+      }
     } finally {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [selectedDay, selectedTimes, selectedClubs, fromHour, toHour]);
+  }, [selectedDay, selectedClubs, fromHour, toHour]);
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
+
+  // Auto-refresh co 3 minuty, tylko gdy karta jest aktywna
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (!document.hidden) fetchSlots();
+    }, 3 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [fetchSlots]);
 
   const handleDayChange = (id: string) => {
     setSelectedDay(id);
@@ -96,9 +111,23 @@ export default function Home() {
   };
 
   const totalSlots = slots.length;
+  function slotLabel(n: number) {
+    if (n === 1) return '1 slot';
+    if (n >= 2 && n <= 4) return `${n} sloty`;
+    return `${n} slotów`;
+  }
 
   return (
     <div className="min-h-screen bg-[#080810] text-white flex flex-col">
+
+      {/* Error banner */}
+      {errors.length > 0 && (
+        <div className="bg-red-500/10 border-b border-red-500/20 px-4 py-2 flex items-center gap-2">
+          <span className="text-xs text-red-400">⚠</span>
+          <span className="text-xs text-red-400/80 flex-1">{errors.join(' · ')}</span>
+          <button onClick={() => setErrors([])} className="text-red-400/50 hover:text-red-400 text-sm leading-none">×</button>
+        </div>
+      )}
 
       {/* Top bar */}
       <header className="border-b border-white/5 px-4 lg:px-6 h-14 flex items-center justify-between flex-shrink-0 backdrop-blur-sm bg-[#080810]/90 sticky top-0 z-20">
@@ -119,10 +148,10 @@ export default function Home() {
           )}
           <button
             onClick={fetchSlots}
-            disabled={loading}
+            disabled={loading || isRefreshing}
             className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 transition border border-white/5"
           >
-            <span className={loading ? 'animate-spin inline-block' : ''}>↻</span>
+            <span className={(loading || isRefreshing) ? 'animate-spin inline-block' : ''}>↻</span>
             <span className="hidden sm:inline text-xs">Odśwież</span>
           </button>
         </div>
@@ -218,13 +247,12 @@ export default function Home() {
 
           {/* Mobile — Kiedy gram */}
           <div className="lg:hidden border-b border-white/5 px-4 pt-3 pb-2">
-            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">Kiedy gram?</p>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 flex-wrap">
               {DAY_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
                   onClick={() => handleDayChange(opt.id)}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition border ${
                     selectedDay === opt.id
                       ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
                       : 'bg-white/5 text-white/40 border-transparent'
@@ -276,6 +304,17 @@ export default function Home() {
                   </button>
                 );
               })}
+              <button
+                onClick={() => {
+                  const allIds = CLUBS.map((c) => c.id);
+                  const next = selectedClubs.length === CLUBS.length ? [CLUBS[0].id] : allIds;
+                  setSelectedClubs(next);
+                  localStorage.setItem('ca_clubs', JSON.stringify(next));
+                }}
+                className="flex items-center px-2.5 py-1 rounded-full text-xs border border-white/5 text-white/25 hover:text-white/50 transition"
+              >
+                {selectedClubs.length === CLUBS.length ? 'Odznacz' : 'Wszystkie'}
+              </button>
             </div>
           </div>
 
@@ -298,9 +337,7 @@ export default function Home() {
               <span className="text-xs text-white/25">·</span>
               <span className="text-xs text-white/25">{fromHour}:00 – {toHour === 24 ? '24:00' : `${toHour}:00`}</span>
               {!loading && totalSlots > 0 && (
-                <span className="ml-auto text-xs text-white/25">
-                  {totalSlots} {totalSlots === 1 ? 'slot' : 'slotów'}
-                </span>
+                <span className="ml-auto text-xs text-white/25">{slotLabel(totalSlots)}</span>
               )}
             </div>
 
@@ -345,16 +382,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Errors */}
-            {errors.length > 0 && (
-              <div className="mt-6 space-y-1">
-                {errors.map((e, i) => (
-                  <p key={i} className="text-xs text-red-400/70 bg-red-500/5 border border-red-500/10 px-3 py-2 rounded-lg">
-                    ⚠ {e}
-                  </p>
-                ))}
-              </div>
-            )}
           </div>
         </main>
       </div>

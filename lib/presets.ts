@@ -35,7 +35,9 @@ export interface TimeOption {
 }
 
 export const DAY_OPTIONS: DayOption[] = [
-  { id: 'weekdays', label: 'Pon–Pt',        days: [1, 2, 3, 4, 5] },
+  { id: 'today',    label: 'Dziś',           days: [] },
+  { id: 'tomorrow', label: 'Jutro',          days: [] },
+  { id: 'weekdays', label: 'Pon–Pt',         days: [1, 2, 3, 4, 5] },
   { id: 'weekend',  label: 'Weekend',        days: [6, 0] },
   { id: 'all',      label: 'Cały tydzień',   days: [0, 1, 2, 3, 4, 5, 6] },
 ];
@@ -48,6 +50,8 @@ export const TIME_OPTIONS: TimeOption[] = [
 ];
 
 export function getDates(dayOptionId: string): string[] {
+  if (dayOptionId === 'today') return [formatDate(new Date())];
+  if (dayOptionId === 'tomorrow') return [formatDate(addDays(new Date(), 1))];
   const opt = DAY_OPTIONS.find((d) => d.id === dayOptionId)!;
   return nextDays(14, opt.days);
 }
