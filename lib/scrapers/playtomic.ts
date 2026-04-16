@@ -98,7 +98,7 @@ export async function fetchPlaytomicSlots(
         endTime,
         duration: slot.duration,
         price: slot.price ?? undefined,
-        bookingUrl: `https://playtomic.com/clubs/${playtomicSlug || clubId}`,
+        bookingUrl: `https://playtomic.io/clubs/${playtomicSlug || clubId}?sport=PADEL&date=${slotDate}`,
       });
     }
   }
