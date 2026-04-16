@@ -87,6 +87,8 @@ export default function Home() {
 
   const handleDayChange = (id: string) => {
     setSelectedDay(id);
+    setSlots([]);
+    hasDataRef.current = false;
     localStorage.setItem('ca_day', id);
   };
 
@@ -98,6 +100,8 @@ export default function Home() {
       localStorage.setItem('ca_times', JSON.stringify(next));
       return next;
     });
+    setSlots([]);
+    hasDataRef.current = false;
   };
 
   const toggleClub = (id: string) => {
@@ -111,6 +115,18 @@ export default function Home() {
   };
 
   const totalSlots = slots.length;
+
+  function getEmptyMessage(): { title: string; sub: string } {
+    const nowH = new Date().getHours();
+    if (selectedDay === 'today' && nowH >= toHour) {
+      return { title: 'Wszystkie sloty na dziś już minęły', sub: 'Sprawdź jutro lub zmień przedział godzin.' };
+    }
+    if (selectedDay === 'today' && nowH >= fromHour) {
+      return { title: 'Brak wolnych kortów', sub: 'Część slotów już minęła. Spróbuj innego przedziału.' };
+    }
+    return { title: 'Brak wolnych kortów', sub: 'w wybranym przedziale czasowym' };
+  }
+
   function slotLabel(n: number) {
     if (n === 1) return '1 slot';
     if (n >= 2 && n <= 4) return `${n} sloty`;
@@ -355,8 +371,8 @@ export default function Home() {
                 <div className="w-16 h-16 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center text-3xl mb-4">
                   🎾
                 </div>
-                <p className="font-medium text-white/50">Brak wolnych kortów</p>
-                <p className="text-sm text-white/25 mt-1">w wybranym przedziale czasowym</p>
+                <p className="font-medium text-white/50">{getEmptyMessage().title}</p>
+                <p className="text-sm text-white/25 mt-1">{getEmptyMessage().sub}</p>
               </div>
             )}
 

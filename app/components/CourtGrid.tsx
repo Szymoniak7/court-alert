@@ -103,10 +103,14 @@ export default function CourtGrid({ slots, clubs, selectedClubs }: Props) {
                             );
                           }
 
+                          const isSingleSlot = cellSlots.length === 1 && !!cellSlots[0].bookingUrl;
                           return (
                             <td key={club.id} className="py-2 px-2 text-center">
                               <button
-                                onClick={() => setModal(cellSlots)}
+                                onClick={() => isSingleSlot
+                                  ? window.open(cellSlots[0].bookingUrl, '_blank', 'noopener,noreferrer')
+                                  : setModal(cellSlots)
+                                }
                                 className={`inline-flex flex-col items-center justify-center w-full rounded-lg border px-2 py-1.5 transition cursor-pointer ${color?.cell}`}
                               >
                                 <span className="text-sm font-bold tabular-nums leading-none">{count}</span>
