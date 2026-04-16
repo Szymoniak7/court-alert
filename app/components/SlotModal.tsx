@@ -62,7 +62,7 @@ export default function SlotModal({ slots, onClose }: Props) {
           <p className="text-2xl font-bold mt-2 tabular-nums">
             {first.startTime}
             <span className="text-base font-normal text-gray-400 ml-2">
-              {first.date.slice(5).replaceAll('-', '.')}
+              {first.date.slice(8)}.{first.date.slice(5, 7)}
             </span>
           </p>
           <p className="text-xs text-gray-500 mt-1">
