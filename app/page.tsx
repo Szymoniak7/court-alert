@@ -26,6 +26,7 @@ export default function Home() {
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const hasDataRef = useRef(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -44,7 +45,7 @@ export default function Home() {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     setIsRefreshing(true);
-    if (slots.length === 0) setLoading(true);
+    if (!hasDataRef.current) setLoading(true);
     try {
       const dates = getDates(selectedDay);
       const params = new URLSearchParams({
@@ -58,13 +59,14 @@ export default function Home() {
       setSlots(data.slots || []);
       setErrors(data.errors || []);
       setLastUpdated(new Date());
+      hasDataRef.current = true;
     } catch (e: unknown) {
       if (e instanceof Error && e.name !== 'AbortError') console.error(e);
     } finally {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [selectedDay, selectedTimes, selectedClubs, fromHour, toHour, slots.length]);
+  }, [selectedDay, selectedTimes, selectedClubs, fromHour, toHour]);
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
