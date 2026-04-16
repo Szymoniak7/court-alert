@@ -8,8 +8,9 @@ import { CLUB_COLORS } from './components/colors';
 import CourtGrid from './components/CourtGrid';
 import CourtGridMobile from './components/CourtGridMobile';
 
+const VALID_DAY_IDS = DAY_OPTIONS.map((d) => d.id);
+
 export default function Home() {
-  const VALID_DAY_IDS = DAY_OPTIONS.map((d) => d.id);
   const [selectedDay, setSelectedDay] = useState(() => {
     if (typeof window === 'undefined') return 'weekdays';
     const saved = localStorage.getItem('ca_day');
@@ -32,6 +33,7 @@ export default function Home() {
   const hasDataRef = useRef(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const fetchSlotsRef = useRef<() => void>(() => {});
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30_000);
@@ -75,15 +77,18 @@ export default function Home() {
     }
   }, [selectedDay, selectedClubs, fromHour, toHour]);
 
+  // Zawsze aktualny ref — timer może go wołać bez resetu interwału
+  fetchSlotsRef.current = fetchSlots;
+
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
-  // Auto-refresh co 3 minuty, tylko gdy karta jest aktywna
+  // Auto-refresh co 3 minuty — stały timer, niezależny od zmian filtrów
   useEffect(() => {
     const id = setInterval(() => {
-      if (!document.hidden) fetchSlots();
+      if (!document.hidden) fetchSlotsRef.current();
     }, 3 * 60 * 1000);
     return () => clearInterval(id);
-  }, [fetchSlots]);
+  }, []); // pusta tablica — timer odpala się raz i żyje przez cały czas życia komponentu
 
   const handleDayChange = (id: string) => {
     setSelectedDay(id);
