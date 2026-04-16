@@ -14,9 +14,10 @@ function isInTimeRange(startTime: string, fromHour: number, toHour: number, date
   const now = new Date();
   const todayWarsaw = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' }); // "YYYY-MM-DD"
   if (date === todayWarsaw) {
-    const nowH = parseInt(now.toLocaleTimeString('en-GB', { timeZone: 'Europe/Warsaw', hour: '2-digit', hour12: false }));
-    const nowM = parseInt(now.toLocaleTimeString('en-GB', { timeZone: 'Europe/Warsaw', minute: '2-digit' }));
-    if (h * 60 + m <= nowH * 60 + nowM) return false;
+    const [nowH, nowM] = now
+      .toLocaleTimeString('en-GB', { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', hour12: false })
+      .split(':').map(Number);
+    if (h * 60 + m < nowH * 60 + nowM) return false;
   }
 
   return true;

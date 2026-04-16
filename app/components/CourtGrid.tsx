@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { TimeSlot } from '@/lib/types';
 import { Club } from '@/lib/clubs';
 import { CLUB_COLORS } from './colors';
 import { formatDatePL } from '@/lib/presets';
 import SlotModal from './SlotModal';
+import { useCourtGrid } from './useCourtGrid';
 
 interface Props {
   slots: TimeSlot[];
@@ -18,25 +19,7 @@ export default function CourtGrid({ slots, clubs, selectedClubs }: Props) {
 
   const visibleClubs = clubs.filter((c) => selectedClubs.includes(c.id));
 
-  // Build grid: date → time → clubId → slots[]
-  const { dates, times, grid } = useMemo(() => {
-    const dateSet = new Set<string>();
-    const timeSet = new Set<string>();
-    const grid: Record<string, Record<string, Record<string, TimeSlot[]>>> = {};
-
-    for (const slot of slots) {
-      dateSet.add(slot.date);
-      timeSet.add(slot.startTime);
-      if (!grid[slot.date]) grid[slot.date] = {};
-      if (!grid[slot.date][slot.startTime]) grid[slot.date][slot.startTime] = {};
-      if (!grid[slot.date][slot.startTime][slot.clubId]) grid[slot.date][slot.startTime][slot.clubId] = [];
-      grid[slot.date][slot.startTime][slot.clubId].push(slot);
-    }
-
-    const dates = Array.from(dateSet).sort();
-    const times = Array.from(timeSet).sort();
-    return { dates, times, grid };
-  }, [slots]);
+  const { dates, times, grid } = useCourtGrid(slots);
 
   if (slots.length === 0) return null;
 
@@ -66,7 +49,7 @@ export default function CourtGrid({ slots, clubs, selectedClubs }: Props) {
               <div className="overflow-x-auto rounded-xl border border-gray-800/60">
                 <table className="w-full border-collapse">
                   {/* Club headers */}
-                  <thead>
+                  <thead className="sticky top-0 z-20">
                     <tr className="border-b border-gray-800">
                       <th className="w-16 min-w-[4rem] py-3 px-3 text-left sticky left-0 bg-gray-950 z-10 border-r border-gray-800">
                         <span className="text-xs text-gray-600 font-normal">Czas</span>
@@ -74,7 +57,7 @@ export default function CourtGrid({ slots, clubs, selectedClubs }: Props) {
                       {visibleClubs.map((club) => {
                         const color = CLUB_COLORS[club.id];
                         return (
-                          <th key={club.id} className="py-3 px-2 text-center min-w-[7rem]">
+                          <th key={club.id} className="py-3 px-2 text-center min-w-[7rem] bg-gray-950">
                             <div className="flex flex-col items-center gap-1">
                               <span className={`w-2 h-2 rounded-full ${color?.dot}`} />
                               <span className={`text-xs font-medium leading-tight ${color?.header} whitespace-nowrap`}>

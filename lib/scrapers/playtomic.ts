@@ -44,15 +44,24 @@ export async function fetchPlaytomicSlots(
   date: string,
   playtomicSlug?: string,
 ): Promise<TimeSlot[]> {
-  const [courtNames, availRes] = await Promise.all([
-    getCourtNames(tenantId),
-    fetch(
-      `${API_BASE}/availability?user_id=me&sport_id=PADEL` +
-        `&start_min=${date}T00:00:00&start_max=${date}T23:59:59` +
-        `&tenant_id=${tenantId}`,
-      { cache: 'no-store' }
-    ),
-  ]);
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 8000);
+
+  let courtNames: Record<string, string>;
+  let availRes: Response;
+  try {
+    [courtNames, availRes] = await Promise.all([
+      getCourtNames(tenantId),
+      fetch(
+        `${API_BASE}/availability?user_id=me&sport_id=PADEL` +
+          `&start_min=${date}T00:00:00&start_max=${date}T23:59:59` +
+          `&tenant_id=${tenantId}`,
+        { cache: 'no-store', signal: ctrl.signal }
+      ),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!availRes.ok) {
     throw new Error(`Playtomic fetch failed for ${clubId}: HTTP ${availRes.status}`);
@@ -77,7 +86,7 @@ export async function fetchPlaytomicSlots(
 
       const [h, m] = startTime.split(':').map(Number);
       const endMinutes = h * 60 + m + slot.duration;
-      const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
+      const endTime = `${String(Math.floor(endMinutes / 60) % 24).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
 
       slots.push({
         courtId: resource.resource_id,
@@ -88,6 +97,7 @@ export async function fetchPlaytomicSlots(
         startTime,
         endTime,
         duration: slot.duration,
+        price: slot.price ?? undefined,
         bookingUrl: `https://playtomic.com/clubs/${playtomicSlug || clubId}`,
       });
     }

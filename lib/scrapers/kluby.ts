@@ -25,7 +25,7 @@ function padTime(t: string): string {
 function addMinutes(time: string, minutes: number): string {
   const [h, m] = time.split(':').map(Number);
   const total = h * 60 + m + minutes;
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
 async function loginKluby(slug: string): Promise<string> {
@@ -81,15 +81,22 @@ async function getSession(slug: string): Promise<string> {
 }
 
 async function fetchHtml(url: string, cookies?: string): Promise<string> {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': UA,
-      ...(cookies ? { Cookie: cookies } : {}),
-    },
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  return res.text();
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': UA,
+        ...(cookies ? { Cookie: cookies } : {}),
+      },
+      cache: 'no-store',
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return res.text();
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function parseGrafikHtml(

@@ -7,5 +7,6 @@ export interface TimeSlot {
   startTime: string;  // HH:MM
   endTime: string;    // HH:MM
   duration: number;   // minutes
+  price?: string;     // np. "60.00 PLN"
   bookingUrl?: string;
 }

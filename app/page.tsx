@@ -25,8 +25,14 @@ export default function Home() {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   const activeTimes = TIME_OPTIONS.filter((t) => selectedTimes.includes(t.id));
   const fromHour = activeTimes.length ? Math.min(...activeTimes.map((t) => t.fromHour)) : 0;
@@ -37,7 +43,8 @@ export default function Home() {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
-    setLoading(true);
+    setIsRefreshing(true);
+    if (slots.length === 0) setLoading(true);
     try {
       const dates = getDates(selectedDay);
       const params = new URLSearchParams({
@@ -55,8 +62,9 @@ export default function Home() {
       if (e instanceof Error && e.name !== 'AbortError') console.error(e);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
-  }, [selectedDay, selectedTimes, selectedClubs, fromHour, toHour]);
+  }, [selectedDay, selectedTimes, selectedClubs, fromHour, toHour, slots.length]);
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
@@ -77,7 +85,9 @@ export default function Home() {
 
   const toggleClub = (id: string) => {
     setSelectedClubs((prev) => {
-      const next = prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id];
+      const next = prev.includes(id)
+        ? prev.length > 1 ? prev.filter((c) => c !== id) : prev
+        : [...prev, id];
       localStorage.setItem('ca_clubs', JSON.stringify(next));
       return next;
     });
@@ -98,9 +108,11 @@ export default function Home() {
           <span className="hidden sm:inline text-xs text-white/20 font-normal">Warszawa · padel</span>
         </div>
         <div className="flex items-center gap-2">
-          {lastUpdated && !loading && (
-            <span className="text-xs text-white/20">
-              {lastUpdated.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+          {lastUpdated && !isRefreshing && (
+            <span className="text-xs text-white/20" title={lastUpdated.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}>
+              {Math.floor((now - lastUpdated.getTime()) / 60000) < 1
+                ? 'przed chwilą'
+                : `${Math.floor((now - lastUpdated.getTime()) / 60000)} min temu`}
             </span>
           )}
           <button
@@ -164,7 +176,20 @@ export default function Home() {
 
           {/* Kluby */}
           <div>
-            <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 px-2">Kluby</p>
+            <div className="flex items-center justify-between mb-2 px-2">
+              <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">Kluby</p>
+              <button
+                onClick={() => {
+                  const allIds = CLUBS.map((c) => c.id);
+                  const next = selectedClubs.length === CLUBS.length ? [CLUBS[0].id] : allIds;
+                  setSelectedClubs(next);
+                  localStorage.setItem('ca_clubs', JSON.stringify(next));
+                }}
+                className="text-[10px] text-white/25 hover:text-white/50 transition"
+              >
+                {selectedClubs.length === CLUBS.length ? 'Odznacz wszystko' : 'Zaznacz wszystko'}
+              </button>
+            </div>
             <div className="space-y-0.5">
               {CLUBS.map((club) => {
                 const active = selectedClubs.includes(club.id);
@@ -277,7 +302,7 @@ export default function Home() {
               )}
             </div>
 
-            {/* Loading */}
+            {/* Initial loading (no data yet) */}
             {loading && (
               <div className="flex flex-col items-center justify-center py-20 gap-3">
                 <div className="w-8 h-8 border-2 border-indigo-500/40 border-t-indigo-500 rounded-full animate-spin" />
@@ -286,7 +311,7 @@ export default function Home() {
             )}
 
             {/* Empty */}
-            {!loading && slots.length === 0 && (
+            {!loading && !isRefreshing && slots.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center text-3xl mb-4">
                   🎾
@@ -298,7 +323,7 @@ export default function Home() {
 
             {/* Grid — desktop */}
             {!loading && slots.length > 0 && (
-              <div className="hidden lg:block">
+              <div className={`hidden lg:block transition-opacity duration-200 ${isRefreshing ? 'opacity-40' : 'opacity-100'}`}>
                 <CourtGrid
                   slots={slots}
                   clubs={CLUBS}
@@ -309,7 +334,7 @@ export default function Home() {
 
             {/* Grid — mobile */}
             {!loading && slots.length > 0 && (
-              <div className="lg:hidden">
+              <div className={`lg:hidden transition-opacity duration-200 ${isRefreshing ? 'opacity-40' : 'opacity-100'}`}>
                 <CourtGridMobile
                   slots={slots}
                   clubs={CLUBS}

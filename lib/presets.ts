@@ -1,5 +1,5 @@
 function formatDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  return d.toLocaleDateString('en-CA'); // YYYY-MM-DD w local timezone
 }
 
 function addDays(d: Date, n: number): Date {

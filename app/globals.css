@@ -24,3 +24,21 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes modal-backdrop {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes modal-panel {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-modal-backdrop {
+  animation: modal-backdrop 180ms ease-out both;
+}
+
+.animate-modal-panel {
+  animation: modal-panel 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}

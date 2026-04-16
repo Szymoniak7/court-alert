@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { TimeSlot } from '@/lib/types';
 import { Club } from '@/lib/clubs';
 import { CLUB_COLORS } from './colors';
 import { formatDatePL } from '@/lib/presets';
 import SlotModal from './SlotModal';
+import { useCourtGrid } from './useCourtGrid';
 
 function CourtIcon({ className }: { className?: string }) {
   return (
@@ -28,26 +29,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
 
   const visibleClubs = clubs.filter((c) => selectedClubs.includes(c.id));
 
-  const { dates, times, grid } = useMemo(() => {
-    const dateSet = new Set<string>();
-    const timeSet = new Set<string>();
-    const grid: Record<string, Record<string, Record<string, TimeSlot[]>>> = {};
-
-    for (const slot of slots) {
-      dateSet.add(slot.date);
-      timeSet.add(slot.startTime);
-      if (!grid[slot.date]) grid[slot.date] = {};
-      if (!grid[slot.date][slot.startTime]) grid[slot.date][slot.startTime] = {};
-      if (!grid[slot.date][slot.startTime][slot.clubId]) grid[slot.date][slot.startTime][slot.clubId] = [];
-      grid[slot.date][slot.startTime][slot.clubId].push(slot);
-    }
-
-    return {
-      dates: Array.from(dateSet).sort(),
-      times: Array.from(timeSet).sort(),
-      grid,
-    };
-  }, [slots]);
+  const { dates, times, grid } = useCourtGrid(slots);
 
   if (slots.length === 0) return null;
 
@@ -68,7 +50,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
           return (
             <div key={date}>
               {/* Date header */}
-              <div className="flex items-center gap-3 mb-3 px-1 sticky top-0 z-10 bg-[#080810] py-2 -mx-4 px-4">
+              <div className="flex items-center gap-3 mb-3 sticky top-0 z-10 bg-[#080810] py-2 -mx-4 px-4">
                 <h3 className="text-base font-semibold text-white">{formatDatePL(date)}</h3>
                 <div className="flex-1 h-px bg-gray-800" />
                 <span className="text-xs text-gray-600">{totalForDate} slotów</span>

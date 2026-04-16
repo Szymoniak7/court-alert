@@ -16,7 +16,11 @@ export default function SlotModal({ slots, onClose }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
   }, [onClose]);
 
   // Group by duration, sorted ascending
@@ -32,13 +36,13 @@ export default function SlotModal({ slots, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 animate-modal-backdrop"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
       <div
-        className="relative w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden animate-modal-panel"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -58,7 +62,7 @@ export default function SlotModal({ slots, onClose }: Props) {
           <p className="text-2xl font-bold mt-2 tabular-nums">
             {first.startTime}
             <span className="text-base font-normal text-gray-400 ml-2">
-              {first.date.slice(5).replace('-', '.')}
+              {first.date.slice(5).replaceAll('-', '.')}
             </span>
           </p>
           <p className="text-xs text-gray-500 mt-1">
@@ -82,7 +86,12 @@ export default function SlotModal({ slots, onClose }: Props) {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-3 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-[0.98] transition group"
                   >
-                    <p className="text-sm font-medium text-white">{slot.courtName}</p>
+                    <div>
+                      <p className="text-sm font-medium text-white">{slot.courtName}</p>
+                      {slot.price && (
+                        <p className="text-xs text-gray-400 mt-0.5">{slot.price}</p>
+                      )}
+                    </div>
                     <span className="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 transition">
                       Rezerwuj →
                     </span>
