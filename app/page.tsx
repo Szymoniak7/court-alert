@@ -262,7 +262,7 @@ export default function Home() {
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
           {/* Mobile — Kiedy gram */}
-          <div className="lg:hidden border-b border-white/5 px-4 pt-3 pb-2">
+          <div className="lg:hidden border-b border-white/5 px-4 py-2">
             <div className="flex gap-1.5 flex-wrap">
               {DAY_OPTIONS.map((opt) => (
                 <button
@@ -281,8 +281,7 @@ export default function Home() {
           </div>
 
           {/* Mobile — O której */}
-          <div className="lg:hidden border-b border-white/5 px-4 pt-2.5 pb-2">
-            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">O której?</p>
+          <div className="lg:hidden border-b border-white/5 px-4 py-2">
             <div className="flex gap-1.5">
               {TIME_OPTIONS.map((opt) => (
                 <button
@@ -334,15 +333,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Mobile legend */}
-          <div className="lg:hidden border-b border-white/5 px-4 py-1.5 flex items-center gap-1.5">
-            <svg width="11" height="9" viewBox="0 0 11 9" fill="none" className="text-white/25">
-              <rect x="0.5" y="0.5" width="10" height="8" rx="0.75" stroke="currentColor" strokeWidth="0.9"/>
-              <line x1="5.5" y1="0.5" x2="5.5" y2="8.5" stroke="currentColor" strokeWidth="0.75"/>
-              <line x1="0.5" y1="4.5" x2="10.5" y2="4.5" stroke="currentColor" strokeWidth="0.75"/>
-            </svg>
-            <span className="text-[10px] text-white/25">= liczba wolnych kortów w danej godzinie</span>
-          </div>
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4 lg:p-6">
