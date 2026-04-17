@@ -3,24 +3,23 @@
 
 interface PriceTier {
   hourlyRate: number;   // PLN/h
-  // Warunki: brak = zawsze ta stawka
-  weekdayOnly?: boolean;   // pn-pt
-  weekendOnly?: boolean;   // sb-nd
-  fromHour?: number;       // >= ta godzina
-  toHour?: number;         // < ta godzina
+  weekdayOnly?: boolean;
+  weekendOnly?: boolean;
+  fromHour?: number;
+  toHour?: number;
 }
 
 interface ClubPricing {
   tiers: PriceTier[];
   defaultHourlyRate: number;
+  // Osobny cennik dla outdoor (jeśli różny)
+  outdoorTiers?: PriceTier[];
+  outdoorDefaultHourlyRate?: number;
 }
 
 const PRICING: Record<string, ClubPricing> = {
   'loba-padel': {
     // https://lobapadel.pl/cennik-za-korty
-    // Best deal: pn-pt 06-16: 120 PLN/h
-    // Prime Time: pn-pt 16-22 + weekendy: 200 PLN/h
-    // Nocne granie: pn-pt 22-00: 140 PLN/h
     defaultHourlyRate: 200,
     tiers: [
       { hourlyRate: 120, weekdayOnly: true, fromHour: 6,  toHour: 16 },
@@ -31,8 +30,6 @@ const PRICING: Record<string, ClubPricing> = {
   },
   'mana-padel': {
     // https://manapadel.pl/cennik
-    // Standard: pn-pt 00-16: 140 PLN/h (jednorazowa)
-    // Prime: pn-pt 16-22:30 + weekendy: 200 PLN/h (jednorazowa)
     defaultHourlyRate: 200,
     tiers: [
       { hourlyRate: 140, weekdayOnly: true, fromHour: 0,  toHour: 16 },
@@ -42,9 +39,6 @@ const PRICING: Record<string, ClubPricing> = {
   },
   'toro-padel': {
     // https://toropadel.pl/cennik
-    // Pn-pt 07-16: 140 PLN/h
-    // Pn-pt 16-23: 192 PLN/h
-    // Weekend: 192 PLN/h
     defaultHourlyRate: 192,
     tiers: [
       { hourlyRate: 140, weekdayOnly: true, fromHour: 7,  toHour: 16 },
@@ -53,39 +47,56 @@ const PRICING: Record<string, ClubPricing> = {
     ],
   },
   'padlovnia': {
-    // https://padlovnia.pl — cennik zimowy 2025-2026 (korty wewnętrzne)
-    // Pn-pt 07-16: 140 PLN/h
-    // Pn-pt 16-24: 180 PLN/h
-    // Weekendy: 180 PLN/h
+    // https://padlovnia.pl — cennik zimowy 2025-2026
+    // Indoor: pn-pt 07-16: 140, 16-24: 180 / weekend: 180
+    // Outdoor: pn-pt 07-16: 120, 16-24: 140 / weekend: 100
     defaultHourlyRate: 180,
     tiers: [
       { hourlyRate: 140, weekdayOnly: true, fromHour: 7,  toHour: 16 },
       { hourlyRate: 180, weekdayOnly: true, fromHour: 16, toHour: 24 },
       { hourlyRate: 180, weekendOnly: true },
     ],
+    outdoorDefaultHourlyRate: 140,
+    outdoorTiers: [
+      { hourlyRate: 120, weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 140, weekdayOnly: true, fromHour: 16, toHour: 24 },
+      { hourlyRate: 100, weekendOnly: true },
+    ],
   },
 };
 
-export function calculateKlubyPrice(clubId: string, startTime: string, date: string, durationMinutes: number): string | undefined {
-  const pricing = PRICING[clubId];
-  if (!pricing) return undefined;
-
-  const [h] = startTime.split(':').map(Number);
-  const dayOfWeek = new Date(date + 'T12:00:00').getDay(); // 0=nd, 6=sb
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  const isWeekday = !isWeekend;
-
-  let hourlyRate = pricing.defaultHourlyRate;
-
-  for (const tier of pricing.tiers) {
+function applyTiers(tiers: PriceTier[], defaultRate: number, h: number, isWeekday: boolean, isWeekend: boolean): number {
+  for (const tier of tiers) {
     if (tier.weekdayOnly && !isWeekday) continue;
     if (tier.weekendOnly && !isWeekend) continue;
     if (tier.fromHour !== undefined && h < tier.fromHour) continue;
     if (tier.toHour !== undefined && h >= tier.toHour) continue;
-    hourlyRate = tier.hourlyRate;
-    break;
+    return tier.hourlyRate;
+  }
+  return defaultRate;
+}
+
+export function calculateKlubyPrice(
+  clubId: string,
+  startTime: string,
+  date: string,
+  durationMinutes: number,
+  courtType?: 'indoor' | 'outdoor',
+): string | undefined {
+  const pricing = PRICING[clubId];
+  if (!pricing) return undefined;
+
+  const [h] = startTime.split(':').map(Number);
+  const dayOfWeek = new Date(date + 'T12:00:00').getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  const isWeekday = !isWeekend;
+
+  let hourlyRate: number;
+  if (courtType === 'outdoor' && pricing.outdoorTiers) {
+    hourlyRate = applyTiers(pricing.outdoorTiers, pricing.outdoorDefaultHourlyRate!, h, isWeekday, isWeekend);
+  } else {
+    hourlyRate = applyTiers(pricing.tiers, pricing.defaultHourlyRate, h, isWeekday, isWeekend);
   }
 
-  const price = Math.round(hourlyRate * durationMinutes / 60);
-  return `${price} PLN`;
+  return `${Math.round(hourlyRate * durationMinutes / 60)} PLN`;
 }

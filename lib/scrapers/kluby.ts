@@ -163,11 +163,19 @@ function parseGrafikHtml(
         const courtId = urlParts[urlParts.length - 2] || String(realColIndex);
         const courtName = courtNames[realColIndex] || `Kort ${realColIndex}`;
         const nameLower = courtName.toLowerCase();
-        const courtType = nameLower.includes('zewn') || nameLower.includes('outdoor') || nameLower.includes('open')
-          ? 'outdoor' as const
-          : nameLower.includes('kryt') || nameLower.includes('indoor') || nameLower.includes('wewn')
-          ? 'indoor' as const
-          : undefined;
+        let courtType: 'indoor' | 'outdoor' | undefined =
+          nameLower.includes('zewn') || nameLower.includes('outdoor') || nameLower.includes('open')
+            ? 'outdoor'
+            : nameLower.includes('kryt') || nameLower.includes('indoor') || nameLower.includes('wewn')
+            ? 'indoor'
+            : undefined;
+
+        // Padlovnia: korty 1-7 = indoor, 8-11 = outdoor
+        if (clubId === 'padlovnia' && courtType === undefined) {
+          const num = parseInt(courtName.match(/\d+/)?.[0] || '0');
+          if (num >= 1 && num <= 7) courtType = 'indoor';
+          else if (num >= 8 && num <= 11) courtType = 'outdoor';
+        }
 
         slots.push({
           courtId,
@@ -281,10 +289,10 @@ export async function fetchKlubySlots(
   const html = await fetchHtml(getGrafikUrl(slug, date));
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
   const enriched = await enrichWithPrices(slots, slug);
-  // Oblicz cenę dynamicznie na podstawie godziny i dnia tygodnia
+  // Oblicz cenę dynamicznie na podstawie godziny, dnia tygodnia i typu kortu
   return enriched.map((s) => ({
     ...s,
-    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration),
+    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType),
   }));
 }
 
@@ -317,6 +325,6 @@ export async function fetchKlubyAuthSlots(
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
   return slots.map((s) => ({
     ...s,
-    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration),
+    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType),
   }));
 }
