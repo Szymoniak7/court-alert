@@ -79,14 +79,10 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                           const count = new Set(cellSlots.map((s) => s.courtId)).size;
                           const color = CLUB_COLORS[club.id];
 
-                          const isSingleSlot = cellSlots.length === 1 && !!cellSlots[0].bookingUrl;
                           return (
                             <button
                               key={club.id}
-                              onClick={() => isSingleSlot
-                                ? window.open(cellSlots[0].bookingUrl, '_blank', 'noopener,noreferrer')
-                                : setModal(cellSlots)
-                              }
+                              onClick={() => setModal(cellSlots)}
                               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition ${color?.cell}`}
                             >
                               <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${color?.dot}`} />
