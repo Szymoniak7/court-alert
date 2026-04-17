@@ -9,4 +9,5 @@ export interface TimeSlot {
   duration: number;   // minutes
   price?: string;     // np. "60.00 PLN"
   bookingUrl?: string;
+  courtType?: 'indoor' | 'outdoor';
 }

@@ -162,6 +162,13 @@ function parseGrafikHtml(
         const urlParts = href.split('/');
         const courtId = urlParts[urlParts.length - 2] || String(realColIndex);
         const courtName = courtNames[realColIndex] || `Kort ${realColIndex}`;
+        const nameLower = courtName.toLowerCase();
+        const courtType = nameLower.includes('zewn') || nameLower.includes('outdoor') || nameLower.includes('open')
+          ? 'outdoor' as const
+          : nameLower.includes('kryt') || nameLower.includes('indoor') || nameLower.includes('wewn')
+          ? 'indoor' as const
+          : undefined;
+
         slots.push({
           courtId,
           courtName,
@@ -172,6 +179,7 @@ function parseGrafikHtml(
           endTime,
           duration: 90,
           bookingUrl: `${KLUBY_BASE}${href}`,
+          courtType,
         });
       }
       realColIndex++;

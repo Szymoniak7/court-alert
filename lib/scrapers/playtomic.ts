@@ -5,22 +5,33 @@ const API_BASE = 'https://api.playtomic.io/v1';
 // Cache court names per tenant
 const courtNameCache: Record<string, Record<string, string>> = {};
 
-async function getCourtNames(tenantId: string): Promise<Record<string, string>> {
-  if (courtNameCache[tenantId]) return courtNameCache[tenantId];
+interface CourtInfo {
+  name: string;
+  courtType?: 'indoor' | 'outdoor';
+}
+
+const courtInfoCache: Record<string, Record<string, CourtInfo>> = {};
+
+async function getCourtInfo(tenantId: string): Promise<Record<string, CourtInfo>> {
+  if (courtInfoCache[tenantId]) return courtInfoCache[tenantId];
 
   try {
     const res = await fetch(`${API_BASE}/tenants/${tenantId}`, {
-      next: { revalidate: 3600 }, // cache 1h
+      next: { revalidate: 3600 },
     });
     if (!res.ok) return {};
     const data = await res.json();
-    const map: Record<string, string> = {};
+    const map: Record<string, CourtInfo> = {};
     for (const r of data.resources || []) {
       if (r.resource_id && r.name) {
-        map[r.resource_id] = r.name.trim();
+        const rt = r.properties?.resource_type;
+        map[r.resource_id] = {
+          name: r.name.trim(),
+          courtType: rt === 'indoor' || rt === 'outdoor' ? rt : undefined,
+        };
       }
     }
-    courtNameCache[tenantId] = map;
+    courtInfoCache[tenantId] = map;
     return map;
   } catch {
     return {};
@@ -47,11 +58,11 @@ export async function fetchPlaytomicSlots(
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 8000);
 
-  let courtNames: Record<string, string>;
+  let courtInfo: Record<string, CourtInfo>;
   let availRes: Response;
   try {
-    [courtNames, availRes] = await Promise.all([
-      getCourtNames(tenantId),
+    [courtInfo, availRes] = await Promise.all([
+      getCourtInfo(tenantId),
       fetch(
         `${API_BASE}/availability?user_id=me&sport_id=PADEL` +
           `&start_min=${date}T00:00:00&start_max=${date}T23:59:59` +
@@ -71,7 +82,9 @@ export async function fetchPlaytomicSlots(
   const slots: TimeSlot[] = [];
 
   for (const resource of data) {
-    const courtName = courtNames[resource.resource_id] || `Kort`;
+    const info = courtInfo[resource.resource_id];
+    const courtName = info?.name || `Kort`;
+    const courtType = info?.courtType;
 
     for (const slot of resource.slots) {
       // API returns start_time in UTC — convert to Europe/Warsaw local time
@@ -99,6 +112,7 @@ export async function fetchPlaytomicSlots(
         duration: slot.duration,
         price: slot.price ?? undefined,
         bookingUrl: `https://playtomic.io/clubs/${playtomicSlug || clubId}?sport=PADEL&date=${slotDate}`,
+        courtType,
       });
     }
   }

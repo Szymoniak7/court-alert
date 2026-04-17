@@ -87,7 +87,18 @@ export default function SlotModal({ slots, onClose }: Props) {
                     className="flex items-center justify-between p-3 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-[0.98] transition group"
                   >
                     <div>
-                      <p className="text-sm font-medium text-white">{slot.courtName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-white">{slot.courtName}</p>
+                        {slot.courtType && (
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide ${
+                            slot.courtType === 'indoor'
+                              ? 'bg-blue-900/60 text-blue-300'
+                              : 'bg-amber-900/60 text-amber-300'
+                          }`}>
+                            {slot.courtType === 'indoor' ? 'indoor' : 'outdoor'}
+                          </span>
+                        )}
+                      </div>
                       {slot.price && (
                         <p className="text-xs text-gray-400 mt-0.5">{slot.price}</p>
                       )}
