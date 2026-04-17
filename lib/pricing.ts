@@ -52,6 +52,18 @@ const PRICING: Record<string, ClubPricing> = {
       { hourlyRate: 192, weekendOnly: true },
     ],
   },
+  'padlovnia': {
+    // https://padlovnia.pl — cennik zimowy 2025-2026 (korty wewnętrzne)
+    // Pn-pt 07-16: 140 PLN/h
+    // Pn-pt 16-24: 180 PLN/h
+    // Weekendy: 180 PLN/h
+    defaultHourlyRate: 180,
+    tiers: [
+      { hourlyRate: 140, weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 180, weekdayOnly: true, fromHour: 16, toHour: 24 },
+      { hourlyRate: 180, weekendOnly: true },
+    ],
+  },
 };
 
 export function calculateKlubyPrice(clubId: string, startTime: string, date: string, durationMinutes: number): string | undefined {

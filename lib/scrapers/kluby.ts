@@ -306,5 +306,9 @@ export async function fetchKlubyAuthSlots(
     throw new Error(`Auth failed for ${slug}`);
   }
 
-  return parseGrafikHtml(html, clubId, clubName, slug, date);
+  const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
+  return slots.map((s) => ({
+    ...s,
+    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration),
+  }));
 }
