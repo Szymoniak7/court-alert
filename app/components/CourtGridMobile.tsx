@@ -132,8 +132,8 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                               </span>
 
                               {/* Cena — stała szerokość, do prawej */}
-                              <span className="text-xs font-semibold text-gray-300 w-20 text-right flex-shrink-0 tabular-nums">
-                                {priceStr ?? ''}
+                              <span className="text-xs font-semibold w-20 text-right flex-shrink-0 tabular-nums" style={{ color: priceStr ? 'rgb(209 213 219)' : 'rgb(55 65 81)' }}>
+                                {priceStr ?? '—'}
                               </span>
 
                               {/* Korty — stała szerokość, do prawej */}

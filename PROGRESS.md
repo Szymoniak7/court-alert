@@ -204,10 +204,55 @@ Jedyne zdanie które opisuje unikalną wartość: *"Powiedz mi kiedy zwolni się
 
 ---
 
+## Sesja 2 (16–17.04.2026)
+
+### Co zrobiono
+
+#### Naprawione bugi
+- **endTime "25:00"** — `Math.floor(endMinutes / 60)` bez `% 24` dawało godziny >24. Naprawione w obu scraperach.
+- **nowM parsing** — `toLocaleTimeString` z opcją tylko `minute` zwracał pełny string w V8. Naprawione przez pobranie `HH:MM` razem i split po `:`.
+- **Format daty "04.16"** — `slice(5).replaceAll('-','.')` dawał miesiąc.dzień zamiast dzień.miesiąc. Naprawione w `SlotModal.tsx`.
+- **Podwójny fetch** — `slots.length` w dependency array `useEffect` powodował ponowne fetchowanie po każdym załadowaniu. Naprawione przez `hasDataRef = useRef(false)`.
+- **Reset timera auto-refresh** — `useEffect([fetchSlots])` resetował interval przy każdej zmianie filtrów. Naprawione przez `fetchSlotsRef` + pusty `useEffect([], [])`.
+
+#### UI / UX
+- Dodano presety **Dziś** i **Jutro** do filtra dnia
+- Kontekstowy **empty state** (np. "Wszystkie sloty na dziś już minęły")
+- **Wskaźnik czasu odświeżenia** w nagłówku ("przed chwilą / X min temu")
+- **Zaznacz / Odznacz wszystko** dla klubów (desktop i mobile)
+- Poprawna **polska odmiana** liczebników (slot/sloty/slotów, kort/korty/kortów)
+- **Animacja modala** (fade-in tło, slide-up panel)
+- **Blokada scrolla** body gdy modal otwarty
+- **Cena** wyświetlana w modalu (z Playtomic)
+- `lang="pl"` w `layout.tsx`
+- **Auto-refresh** co 3 minuty gdy karta widoczna
+- Modal zawsze pojawia się po kliknięciu (cofnięto skrót bezpośredniego otwierania URL)
+
+#### Refaktoryzacja
+- `useCourtGrid.ts` — wspólna logika siatki dla desktop i mobile
+- `useFilters.ts` — stan filtrów + localStorage
+- `useSlots.ts` — fetch, auto-refresh, loading, błędy, helpers
+- `page.tsx`: ~400 → ~230 linii, samo JSX layoutu
+
+#### Infrastruktura — Padlovnia session cache ✅
+- Upstash Redis (Frankfurt, eu-central-1, plan free 30 MB)
+- Sesja logowania cachowana 23h pod kluczem `kluby:session:padlovnia`
+- Fallback na świeży login gdy Redis niedostępny
+- `REDIS_URL` w `.env.local` i Vercel Environment Variables
+- Pakiet `redis` (node-redis) zainstalowany
+
+### Kluczowe wnioski
+- **Vercel serverless = brak wspólnej pamięci** — in-memory cache działa lokalnie, ale na produkcji każde zapytanie może trafić na nowy kontener. Cache sesji, stan współdzielony → Redis/KV/DB.
+- **`useCallback` dependency array** — `slots.length` w tablicy zależności powoduje pętlę. Zamiast tego używać ref.
+- **Stable ref pattern** — `fetchSlotsRef.current = fetchSlots` pozwala timerowi wołać aktualną funkcję bez resetowania interwału.
+- **Tailwind v4** — klasy np. `bg-gray-950` mogą nie istnieć; lepiej `bg-[#080810]`.
+
+---
+
 ## Otwarte problemy techniczne
 
-### 1. Padlovnia session cache nie działa na Vercel
-Vercel serverless functions mogą być wywoływane na różnych instancjach — in-memory `sessionCache` nie jest współdzielony. Przy każdym zimnym starcie następuje re-login. Jeśli Padlovnia ogranicza częstotliwość logowań, może to powodować blokadę konta. **Rozwiązanie**: przenieść sesję do Vercel KV (Redis) lub Edge Config.
+### 1. ~~Padlovnia session cache~~ — ROZWIĄZANE (sesja 2)
+Przeniesiono do Upstash Redis. Każdy kontener Vercel odczytuje tę samą sesję.
 
 ### 2. kluby.org scraper — fragility
 Parsowanie HTML jest wrażliwe na zmiany layoutu strony. Nie ma żadnych testów/alertów gdy scraper przestaje działać. Jedynym sygnałem jest `errors[]` w odpowiedzi API.
