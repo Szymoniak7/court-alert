@@ -66,14 +66,30 @@ export async function GET() {
     });
     const slotHtml = await slotRes.text();
 
-    // Return first 3000 chars of HTML to analyze structure
+    // Find price-related fragments
+    const lower = slotHtml.toLowerCase();
+    const plnIdx = slotHtml.indexOf('PLN');
+    const zlIdx = lower.indexOf('zł');
+    const cenaIdx = lower.indexOf('cena');
+    const priceIdx = lower.indexOf('price');
+
+    const snippet = (idx: number) => idx >= 0 ? slotHtml.slice(Math.max(0, idx - 100), idx + 200) : null;
+
+    // Also extract all numbers near PLN/zł
+    const priceMatches = [...slotHtml.matchAll(/(\d+[.,]?\d*)\s*(PLN|zł)/gi)].map(m => m[0]);
+
     return NextResponse.json({
       cookieCount: cookies.split(';').length,
       slotUrl,
-      htmlPreview: slotHtml.slice(0, 3000),
-      containsPLN: slotHtml.includes('PLN'),
-      containsZl: slotHtml.toLowerCase().includes('zł'),
-      containsCena: slotHtml.toLowerCase().includes('cena'),
+      htmlLength: slotHtml.length,
+      containsPLN: plnIdx >= 0,
+      containsZl: zlIdx >= 0,
+      containsCena: cenaIdx >= 0,
+      priceMatches,
+      snippetPLN: snippet(plnIdx),
+      snippetCena: snippet(cenaIdx),
+      // Last 2000 chars (price often at bottom)
+      htmlTail: slotHtml.slice(-2000),
     });
   } catch (e: unknown) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
