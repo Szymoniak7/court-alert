@@ -38,7 +38,7 @@ function getSlotSummary(slots: TimeSlot[]) {
   const durationStr =
     durations.length === 1
       ? formatDuration(durations[0])
-      : durations.map(formatDuration).join('/');
+      : `${formatDuration(durations[0])}-${formatDuration(durations[durations.length - 1])}`;
 
   const priceStr = minPrice !== null ? `${Math.round(minPrice)} PLN` : null;
 
