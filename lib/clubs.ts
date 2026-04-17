@@ -11,6 +11,8 @@ export interface Club {
   playtomicTenantId?: string;
   // Playtomic URL slug (for booking link)
   playtomicSlug?: string;
+  // Przybliżona cena slotu (gdy API nie zwraca ceny)
+  priceHint?: string;
 }
 
 export const CLUBS: Club[] = [
@@ -19,18 +21,21 @@ export const CLUBS: Club[] = [
     name: 'Loba Padel',
     source: 'kluby',
     klubySlug: 'loba-padel',
+    priceHint: '400 PLN',
   },
   {
     id: 'mana-padel',
     name: 'Mana Padel',
     source: 'kluby',
     klubySlug: 'mana-padel',
+    priceHint: '400 PLN',
   },
   {
     id: 'toro-padel',
     name: 'Toro Padel',
     source: 'kluby',
     klubySlug: 'toro-padel',
+    priceHint: '384 PLN',
   },
   {
     id: 'interpadel',

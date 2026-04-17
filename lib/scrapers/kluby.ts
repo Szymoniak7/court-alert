@@ -267,11 +267,17 @@ export async function fetchKlubySlots(
   clubId: string,
   clubName: string,
   slug: string,
-  date: string
+  date: string,
+  priceHint?: string,
 ): Promise<TimeSlot[]> {
   const html = await fetchHtml(getGrafikUrl(slug, date));
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
-  return enrichWithPrices(slots, slug);
+  const enriched = await enrichWithPrices(slots, slug);
+  // Jeśli scraping ceny się nie udał, użyj priceHint z konfiguracji
+  if (priceHint) {
+    return enriched.map((s) => ({ ...s, price: s.price ?? priceHint }));
+  }
+  return enriched;
 }
 
 export async function fetchKlubyAuthSlots(
