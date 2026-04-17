@@ -118,41 +118,31 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                             <button
                               key={club.id}
                               onClick={() => setModal(cellSlots)}
-                              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all active:scale-[0.98] text-left"
+                              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all active:scale-[0.98] text-left"
                               style={{
                                 background: 'rgba(255,255,255,0.03)',
                                 borderColor: 'rgba(255,255,255,0.06)',
                               }}
                             >
-                              {/* Color dot */}
+                              {/* Lewa: dot + nazwa */}
                               <span className={`w-2 h-2 rounded-full flex-shrink-0 ${color?.dot}`} />
-
-                              {/* Club name */}
-                              <span className="text-sm font-medium text-gray-200 flex-1 truncate">
+                              <span className="text-sm font-medium text-gray-200 w-24 flex-shrink-0 truncate">
                                 {club.shortName ?? club.name.split(' ')[0]}
                               </span>
 
-                              {/* Duration */}
-                              <span className="text-xs text-gray-500 flex-shrink-0 w-8 text-right">
-                                {durationStr}
-                              </span>
+                              {/* Środek: czas + cena */}
+                              <div className="flex-1 flex items-center justify-center gap-2">
+                                <span className="text-xs text-gray-500">{durationStr}</span>
+                                {priceStr && (
+                                  <span className="text-xs font-semibold text-gray-300">{priceStr}</span>
+                                )}
+                              </div>
 
-                              {/* Price */}
-                              {priceStr ? (
-                                <span className="text-xs font-semibold text-gray-300 flex-shrink-0 w-16 text-right">
-                                  {priceStr}
-                                </span>
-                              ) : (
-                                <span className="w-16 flex-shrink-0" />
-                              )}
-
-                              {/* Courts */}
-                              <div className="flex items-center gap-1 flex-shrink-0 text-gray-500 w-7 justify-end">
+                              {/* Prawa: korty + chevron */}
+                              <div className="flex items-center gap-1 flex-shrink-0 text-gray-500">
                                 <CourtIcon />
                                 <span className="text-xs font-bold tabular-nums">{courts}</span>
                               </div>
-
-                              {/* Chevron */}
                               <span className="text-gray-700 text-base flex-shrink-0">›</span>
                             </button>
                           );
