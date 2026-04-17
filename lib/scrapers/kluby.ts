@@ -1,15 +1,20 @@
 import * as cheerio from 'cheerio';
+import { createClient } from 'redis';
 import { TimeSlot } from '../types';
 
 const KLUBY_BASE = 'https://kluby.org';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
-// In-memory session cache for authenticated clubs
-interface Session {
-  cookies: string;
-  expiresAt: number;
+let redisClient: ReturnType<typeof createClient> | null = null;
+
+async function getRedis() {
+  if (!redisClient) {
+    redisClient = createClient({ url: process.env.REDIS_URL });
+    redisClient.on('error', (e) => console.error('Redis error:', e));
+    await redisClient.connect();
+  }
+  return redisClient;
 }
-const sessionCache: Record<string, Session> = {};
 
 function getGrafikUrl(slug: string, date: string): string {
   if (slug === 'toro-padel') {
@@ -69,15 +74,20 @@ async function loginKluby(slug: string): Promise<string> {
 }
 
 async function getSession(slug: string): Promise<string> {
-  const cached = sessionCache[slug];
-  if (cached && Date.now() < cached.expiresAt) return cached.cookies;
+  const key = `kluby:session:${slug}`;
+  try {
+    const redis = await getRedis();
+    const cached = await redis.get(key);
+    if (cached) return cached;
 
-  const cookies = await loginKluby(slug);
-  sessionCache[slug] = {
-    cookies,
-    expiresAt: Date.now() + 23 * 60 * 60 * 1000, // 23h
-  };
-  return cookies;
+    const cookies = await loginKluby(slug);
+    await redis.set(key, cookies, { EX: 23 * 60 * 60 }); // 23h TTL
+    return cookies;
+  } catch (e) {
+    // Redis unavailable — fall back to fresh login without caching
+    console.error('Redis getSession error:', e);
+    return loginKluby(slug);
+  }
 }
 
 async function fetchHtml(url: string, cookies?: string): Promise<string> {
@@ -190,10 +200,15 @@ export async function fetchKlubyAuthSlots(
   const url = getGrafikUrl(slug, date);
   let html = await fetchHtml(url, cookies);
 
-  // If session expired, re-login once
+  // If session expired, clear Redis and re-login once
   if (html.includes('Musisz być zalogowany')) {
-    delete sessionCache[slug];
-    cookies = await getSession(slug);
+    try {
+      const redis = await getRedis();
+      await redis.del(`kluby:session:${slug}`);
+    } catch (e) {
+      console.error('Redis del error:', e);
+    }
+    cookies = await loginKluby(slug);
     html = await fetchHtml(url, cookies);
   }
 

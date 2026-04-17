@@ -1,142 +1,42 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { TimeSlot } from '@/lib/types';
 import { CLUBS } from '@/lib/clubs';
-import { DAY_OPTIONS, TIME_OPTIONS, getDates } from '@/lib/presets';
+import { DAY_OPTIONS, TIME_OPTIONS } from '@/lib/presets';
 import { CLUB_COLORS } from './components/colors';
 import CourtGrid from './components/CourtGrid';
 import CourtGridMobile from './components/CourtGridMobile';
-
-const VALID_DAY_IDS = DAY_OPTIONS.map((d) => d.id);
+import { useFilters } from './hooks/useFilters';
+import { useSlots } from './hooks/useSlots';
 
 export default function Home() {
-  const [selectedDay, setSelectedDay] = useState(() => {
-    if (typeof window === 'undefined') return 'weekdays';
-    const saved = localStorage.getItem('ca_day');
-    return saved && VALID_DAY_IDS.includes(saved) ? saved : 'weekdays';
-  });
-  const [selectedTimes, setSelectedTimes] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return ['afterwork'];
-    const saved = localStorage.getItem('ca_times');
-    return saved ? JSON.parse(saved) : ['afterwork'];
-  });
-  const [selectedClubs, setSelectedClubs] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return CLUBS.map((c) => c.id);
-    const saved = localStorage.getItem('ca_clubs');
-    return saved ? JSON.parse(saved) : CLUBS.map((c) => c.id);
-  });
-  const [slots, setSlots] = useState<TimeSlot[]>([]);
-  const [errors, setErrors] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const hasDataRef = useRef(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-  const fetchSlotsRef = useRef<() => void>(() => {});
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 30_000);
-    return () => clearInterval(id);
-  }, []);
+  const filters = useFilters();
+  const {
+    selectedDay, selectedTimes, selectedClubs,
+    fromHour, toHour,
+    toggleTime, toggleClub, toggleAllClubs,
+  } = filters;
 
-  const activeTimes = TIME_OPTIONS.filter((t) => selectedTimes.includes(t.id));
-  const fromHour = activeTimes.length ? Math.min(...activeTimes.map((t) => t.fromHour)) : 0;
-  const toHour = activeTimes.length ? Math.max(...activeTimes.map((t) => t.toHour)) : 24;
-  const dayOpt = DAY_OPTIONS.find((d) => d.id === selectedDay) ?? DAY_OPTIONS[0];
+  const slotsState = useSlots({ selectedDay, selectedClubs, fromHour, toHour });
+  const {
+    slots, errors, loading, isRefreshing,
+    lastUpdated, now,
+    fetchSlots, resetSlots, setErrors,
+    getEmptyMessage, slotLabel,
+  } = slotsState;
 
-  const fetchSlots = useCallback(async () => {
-    abortRef.current?.abort();
-    const ctrl = new AbortController();
-    abortRef.current = ctrl;
-    setIsRefreshing(true);
-    if (!hasDataRef.current) setLoading(true);
-    try {
-      const dates = getDates(selectedDay);
-      const params = new URLSearchParams({
-        dates: dates.join(','),
-        from: String(fromHour),
-        to: String(toHour),
-        clubs: selectedClubs.join(','),
-      });
-      const res = await fetch(`/api/availability?${params}`, { signal: ctrl.signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setSlots(data.slots || []);
-      setErrors(data.errors || []);
-      setLastUpdated(new Date());
-      hasDataRef.current = true;
-    } catch (e: unknown) {
-      if (e instanceof Error && e.name !== 'AbortError') {
-        console.error(e);
-        setErrors((prev) => prev.length ? prev : ['Błąd połączenia z serwerem']);
-      }
-    } finally {
-      setLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [selectedDay, selectedClubs, fromHour, toHour]);
-
-  // Zawsze aktualny ref — timer może go wołać bez resetu interwału
-  fetchSlotsRef.current = fetchSlots;
-
-  useEffect(() => { fetchSlots(); }, [fetchSlots]);
-
-  // Auto-refresh co 3 minuty — stały timer, niezależny od zmian filtrów
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (!document.hidden) fetchSlotsRef.current();
-    }, 3 * 60 * 1000);
-    return () => clearInterval(id);
-  }, []); // pusta tablica — timer odpala się raz i żyje przez cały czas życia komponentu
-
+  // Wrap day/time changes to also clear stale slot data
   const handleDayChange = (id: string) => {
-    setSelectedDay(id);
-    setSlots([]);
-    hasDataRef.current = false;
-    localStorage.setItem('ca_day', id);
+    filters.handleDayChange(id);
+    resetSlots();
   };
 
-  const toggleTime = (id: string) => {
-    setSelectedTimes((prev) => {
-      const next = prev.includes(id)
-        ? prev.length > 1 ? prev.filter((t) => t !== id) : prev
-        : [...prev, id];
-      localStorage.setItem('ca_times', JSON.stringify(next));
-      return next;
-    });
-    setSlots([]);
-    hasDataRef.current = false;
+  const handleToggleTime = (id: string) => {
+    toggleTime(id);
+    resetSlots();
   };
 
-  const toggleClub = (id: string) => {
-    setSelectedClubs((prev) => {
-      const next = prev.includes(id)
-        ? prev.length > 1 ? prev.filter((c) => c !== id) : prev
-        : [...prev, id];
-      localStorage.setItem('ca_clubs', JSON.stringify(next));
-      return next;
-    });
-  };
-
+  const dayOpt = DAY_OPTIONS.find((d) => d.id === selectedDay) ?? DAY_OPTIONS[0];
   const totalSlots = slots.length;
-
-  function getEmptyMessage(): { title: string; sub: string } {
-    const nowH = new Date().getHours();
-    if (selectedDay === 'today' && nowH >= toHour) {
-      return { title: 'Wszystkie sloty na dziś już minęły', sub: 'Sprawdź jutro lub zmień przedział godzin.' };
-    }
-    if (selectedDay === 'today' && nowH >= fromHour) {
-      return { title: 'Brak wolnych kortów', sub: 'Część slotów już minęła. Spróbuj innego przedziału.' };
-    }
-    return { title: 'Brak wolnych kortów', sub: 'w wybranym przedziale czasowym' };
-  }
-
-  function slotLabel(n: number) {
-    if (n === 1) return '1 slot';
-    if (n >= 2 && n <= 4) return `${n} sloty`;
-    return `${n} slotów`;
-  }
 
   return (
     <div className="min-h-screen bg-[#080810] text-white flex flex-col">
@@ -210,7 +110,7 @@ export default function Home() {
               {TIME_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => toggleTime(opt.id)}
+                  onClick={() => handleToggleTime(opt.id)}
                   className={`w-full text-left px-3 py-2 rounded-xl transition border ${
                     selectedTimes.includes(opt.id)
                       ? 'bg-indigo-500/15 border-indigo-500/20'
@@ -231,12 +131,7 @@ export default function Home() {
             <div className="flex items-center justify-between mb-2 px-2">
               <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">Kluby</p>
               <button
-                onClick={() => {
-                  const allIds = CLUBS.map((c) => c.id);
-                  const next = selectedClubs.length === CLUBS.length ? [CLUBS[0].id] : allIds;
-                  setSelectedClubs(next);
-                  localStorage.setItem('ca_clubs', JSON.stringify(next));
-                }}
+                onClick={toggleAllClubs}
                 className="text-[10px] text-white/25 hover:text-white/50 transition"
               >
                 {selectedClubs.length === CLUBS.length ? 'Odznacz wszystko' : 'Zaznacz wszystko'}
@@ -291,7 +186,7 @@ export default function Home() {
               {TIME_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => toggleTime(opt.id)}
+                  onClick={() => handleToggleTime(opt.id)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
                     selectedTimes.includes(opt.id)
                       ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
@@ -325,19 +220,13 @@ export default function Home() {
                 );
               })}
               <button
-                onClick={() => {
-                  const allIds = CLUBS.map((c) => c.id);
-                  const next = selectedClubs.length === CLUBS.length ? [CLUBS[0].id] : allIds;
-                  setSelectedClubs(next);
-                  localStorage.setItem('ca_clubs', JSON.stringify(next));
-                }}
+                onClick={toggleAllClubs}
                 className="flex items-center px-2.5 py-1 rounded-full text-xs border border-white/5 text-white/25 hover:text-white/50 transition"
               >
                 {selectedClubs.length === CLUBS.length ? 'Odznacz' : 'Wszystkie'}
               </button>
             </div>
           </div>
-
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4 lg:p-6">
@@ -374,22 +263,14 @@ export default function Home() {
             {/* Grid — desktop */}
             {!loading && slots.length > 0 && (
               <div className={`hidden lg:block transition-opacity duration-200 ${isRefreshing ? 'opacity-40' : 'opacity-100'}`}>
-                <CourtGrid
-                  slots={slots}
-                  clubs={CLUBS}
-                  selectedClubs={selectedClubs}
-                />
+                <CourtGrid slots={slots} clubs={CLUBS} selectedClubs={selectedClubs} />
               </div>
             )}
 
             {/* Grid — mobile */}
             {!loading && slots.length > 0 && (
               <div className={`lg:hidden transition-opacity duration-200 ${isRefreshing ? 'opacity-40' : 'opacity-100'}`}>
-                <CourtGridMobile
-                  slots={slots}
-                  clubs={CLUBS}
-                  selectedClubs={selectedClubs}
-                />
+                <CourtGridMobile slots={slots} clubs={CLUBS} selectedClubs={selectedClubs} />
               </div>
             )}
 
