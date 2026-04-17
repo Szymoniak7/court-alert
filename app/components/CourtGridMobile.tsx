@@ -10,7 +10,7 @@ import { useCourtGrid } from './useCourtGrid';
 
 function CourtIcon({ className }: { className?: string }) {
   return (
-    <svg width="13" height="10" viewBox="0 0 14 11" fill="none" className={className}>
+    <svg width="12" height="10" viewBox="0 0 14 11" fill="none" className={className}>
       <rect x="0.5" y="0.5" width="13" height="10" rx="1" stroke="currentColor" strokeWidth="1"/>
       <line x1="7" y1="0.5" x2="7" y2="10.5" stroke="currentColor" strokeWidth="0.9"/>
       <line x1="0.5" y1="5.5" x2="13.5" y2="5.5" stroke="currentColor" strokeWidth="0.9"/>
@@ -28,21 +28,23 @@ function formatDuration(minutes: number): string {
 function getSlotSummary(slots: TimeSlot[]) {
   const durations = [...new Set(slots.map((s) => s.duration))].sort((a, b) => a - b);
   const courts = new Set(slots.map((s) => s.courtId)).size;
+  const shortest = durations[0];
+  const hasMultipleDurations = durations.length > 1;
 
-  const prices = slots
-    .filter((s) => s.price)
+  // Cena najkrótszego dostępnego czasu
+  const shortestPrices = slots
+    .filter((s) => s.duration === shortest && s.price)
     .map((s) => parseFloat(s.price!.replace(/[^\d.]/g, '')))
     .filter((p) => !isNaN(p));
-  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+  const minPrice = shortestPrices.length > 0 ? Math.min(...shortestPrices) : null;
 
-  const durationStr =
-    durations.length === 1
-      ? formatDuration(durations[0])
-      : `${formatDuration(durations[0])}-${formatDuration(durations[durations.length - 1])}`;
+  const durationStr = formatDuration(shortest);
+  // "od" gdy są dłuższe opcje
+  const priceStr = minPrice !== null
+    ? `${hasMultipleDurations ? 'od ' : ''}${Math.round(minPrice)} PLN`
+    : null;
 
-  const priceStr = minPrice !== null ? `${Math.round(minPrice)} PLN` : null;
-
-  return { durationStr, priceStr, courts };
+  return { durationStr, hasMultipleDurations, priceStr, courts };
 }
 
 interface Props {
@@ -70,11 +72,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
 
           const totalForDate = dateTimes.reduce(
             (sum, t) =>
-              sum +
-              visibleClubs.reduce(
-                (s, c) => s + (grid[date]?.[t]?.[c.id]?.length || 0),
-                0
-              ),
+              sum + visibleClubs.reduce((s, c) => s + (grid[date]?.[t]?.[c.id]?.length || 0), 0),
             0
           );
 
@@ -85,16 +83,12 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                 <h3 className="text-base font-semibold text-white">{formatDatePL(date)}</h3>
                 <div className="flex-1 h-px bg-gray-800" />
                 <span className="text-xs text-gray-600">
-                  {totalForDate === 1
-                    ? '1 slot'
-                    : totalForDate <= 4
-                    ? `${totalForDate} sloty`
-                    : `${totalForDate} slotów`}
+                  {totalForDate === 1 ? '1 slot' : totalForDate <= 4 ? `${totalForDate} sloty` : `${totalForDate} slotów`}
                 </span>
               </div>
 
               {/* Time groups */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {dateTimes.map((time) => {
                   const clubsWithSlots = visibleClubs.filter(
                     (c) => (grid[date]?.[time]?.[c.id]?.length || 0) > 0
@@ -103,47 +97,53 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                   return (
                     <div key={time}>
                       {/* Time label */}
-                      <p className="text-xs font-mono font-semibold text-gray-600 tabular-nums mb-1.5 px-1">
+                      <p className="text-[11px] font-mono font-bold text-gray-600 tabular-nums mb-1.5 px-1 uppercase tracking-wider">
                         {time}
                       </p>
 
-                      {/* Club rows */}
-                      <div className="space-y-1">
+                      {/* Club rows — stałe kolumny jak tabela */}
+                      <div className="space-y-[3px]">
                         {clubsWithSlots.map((club) => {
                           const cellSlots = grid[date]?.[time]?.[club.id] || [];
                           const color = CLUB_COLORS[club.id];
-                          const { durationStr, priceStr, courts } = getSlotSummary(cellSlots);
+                          const { durationStr, hasMultipleDurations, priceStr, courts } = getSlotSummary(cellSlots);
 
                           return (
                             <button
                               key={club.id}
                               onClick={() => setModal(cellSlots)}
-                              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all active:scale-[0.98] text-left"
+                              className="w-full flex items-center px-3 py-2.5 rounded-xl border active:scale-[0.98] transition-transform"
                               style={{
                                 background: 'rgba(255,255,255,0.03)',
                                 borderColor: 'rgba(255,255,255,0.06)',
                               }}
                             >
-                              {/* Lewa: dot + nazwa */}
-                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${color?.dot}`} />
-                              <span className="text-sm font-medium text-gray-200 w-24 flex-shrink-0 truncate">
+                              {/* Dot */}
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 mr-2.5 ${color?.dot}`} />
+
+                              {/* Nazwa — flex-1, obcina za długie */}
+                              <span className="text-sm font-medium text-gray-200 flex-1 min-w-0 truncate text-left">
                                 {club.shortName ?? club.name.split(' ')[0]}
                               </span>
 
-                              {/* Środek: czas + cena */}
-                              <div className="flex-1 flex items-center justify-center gap-2">
-                                <span className="text-xs text-gray-500">{durationStr}</span>
-                                {priceStr && (
-                                  <span className="text-xs font-semibold text-gray-300">{priceStr}</span>
-                                )}
-                              </div>
+                              {/* Czas — stała szerokość, wyśrodkowany */}
+                              <span className="text-xs text-gray-500 w-10 text-center flex-shrink-0">
+                                {durationStr}{hasMultipleDurations && <span className="text-gray-700">+</span>}
+                              </span>
 
-                              {/* Prawa: korty + chevron */}
-                              <div className="flex items-center gap-1 flex-shrink-0 text-gray-500">
+                              {/* Cena — stała szerokość, do prawej */}
+                              <span className="text-xs font-semibold text-gray-300 w-20 text-right flex-shrink-0 tabular-nums">
+                                {priceStr ?? ''}
+                              </span>
+
+                              {/* Korty — stała szerokość, do prawej */}
+                              <span className="flex items-center justify-end gap-1 w-8 flex-shrink-0 text-gray-500 ml-1">
                                 <CourtIcon />
                                 <span className="text-xs font-bold tabular-nums">{courts}</span>
-                              </div>
-                              <span className="text-gray-700 text-base flex-shrink-0">›</span>
+                              </span>
+
+                              {/* Chevron */}
+                              <span className="text-gray-700 ml-2 flex-shrink-0 text-sm">›</span>
                             </button>
                           );
                         })}
