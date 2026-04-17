@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import { createClient } from 'redis';
 import { TimeSlot } from '../types';
+import { calculateKlubyPrice } from '../pricing';
 
 const KLUBY_BASE = 'https://kluby.org';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
@@ -268,16 +269,15 @@ export async function fetchKlubySlots(
   clubName: string,
   slug: string,
   date: string,
-  priceHint?: string,
 ): Promise<TimeSlot[]> {
   const html = await fetchHtml(getGrafikUrl(slug, date));
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
   const enriched = await enrichWithPrices(slots, slug);
-  // Jeśli scraping ceny się nie udał, użyj priceHint z konfiguracji
-  if (priceHint) {
-    return enriched.map((s) => ({ ...s, price: s.price ?? priceHint }));
-  }
-  return enriched;
+  // Oblicz cenę dynamicznie na podstawie godziny i dnia tygodnia
+  return enriched.map((s) => ({
+    ...s,
+    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration),
+  }));
 }
 
 export async function fetchKlubyAuthSlots(
