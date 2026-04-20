@@ -239,7 +239,11 @@ function parseGrafikHtml(
         freeCount++;
       }
 
-      const duration = freeCount * 30;
+      const rawDuration = freeCount * 30;
+      // Skip slots shorter than 1h (not bookable for padel)
+      if (rawDuration < 60) continue;
+      // Cap at 2h — standard padel booking range is 1h / 1.5h / 2h
+      const duration = Math.min(rawDuration, 120);
       const startTime = times[timeIdx];
       const endTime = addMinutes(startTime, duration);
 
