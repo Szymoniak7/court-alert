@@ -19,10 +19,9 @@ function CourtIcon({ className }: { className?: string }) {
 }
 
 function formatDuration(minutes: number): string {
-  if (minutes === 60) return '1h';
-  if (minutes === 90) return '1.5h';
-  if (minutes === 120) return '2h';
-  return `${minutes / 60}h`;
+  if (minutes < 60) return `${minutes}m`;
+  if (minutes % 60 === 0) return `${minutes / 60}h`;
+  return `${Math.floor(minutes / 60)}h${minutes % 60}m`;
 }
 
 function getSlotSummary(slots: TimeSlot[]) {
