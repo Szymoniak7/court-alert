@@ -3,8 +3,23 @@ import { CLUBS } from '@/lib/clubs';
 import { fetchKlubySlots, fetchKlubyAuthSlots } from '@/lib/scrapers/kluby';
 import { fetchPlaytomicSlots } from '@/lib/scrapers/playtomic';
 import { TimeSlot } from '@/lib/types';
+import { createClient } from 'redis';
 
 export const dynamic = 'force-dynamic';
+
+let redisClient: ReturnType<typeof createClient> | null = null;
+
+async function getRedis() {
+  if (!redisClient) {
+    redisClient = createClient({
+      url: process.env.REDIS_URL,
+      socket: { connectTimeout: 2000 },
+    });
+    redisClient.on('error', () => { redisClient = null; });
+    await redisClient.connect();
+  }
+  return redisClient;
+}
 
 function isInTimeRange(startTime: string, fromHour: number, toHour: number, date: string): boolean {
   const [h, m] = startTime.split(':').map(Number);
@@ -12,7 +27,7 @@ function isInTimeRange(startTime: string, fromHour: number, toHour: number, date
 
   // For today: hide slots that have already started (Warsaw time)
   const now = new Date();
-  const todayWarsaw = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' }); // "YYYY-MM-DD"
+  const todayWarsaw = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' });
   if (date === todayWarsaw) {
     const [nowH, nowM] = now
       .toLocaleTimeString('en-GB', { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', hour12: false })
@@ -36,7 +51,6 @@ function deduplicate(slots: TimeSlot[]): TimeSlot[] {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
-  // Support multiple dates: ?dates=2026-04-14,2026-04-15 OR ?date=2026-04-14
   const datesParam = searchParams.get('dates') || searchParams.get('date');
   const dates = datesParam
     ? datesParam.split(',').filter(Boolean)
@@ -45,8 +59,23 @@ export async function GET(req: NextRequest) {
   const fromHour = parseInt(searchParams.get('from') || '17');
   const toHour = parseInt(searchParams.get('to') || '22');
   const clubIds = searchParams.get('clubs')?.split(',').filter(Boolean);
-
   const clubs = clubIds ? CLUBS.filter((c) => clubIds.includes(c.id)) : CLUBS;
+
+  // Cache key — sorted so order doesn't matter
+  const cacheKey = `availability:v1:${[...dates].sort().join(',')}:${fromHour}:${toHour}:${
+    [...clubs.map((c) => c.id)].sort().join(',')
+  }`;
+
+  // Try cache first (2 min TTL)
+  try {
+    const redis = await getRedis();
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return new NextResponse(cached, {
+        headers: { 'Content-Type': 'application/json', 'X-Cache': 'HIT' },
+      });
+    }
+  } catch (_) { /* Redis unavailable — skip cache */ }
 
   // Fetch all dates × all clubs in parallel
   const tasks = dates.flatMap((date) =>
@@ -81,7 +110,6 @@ export async function GET(req: NextRequest) {
 
   const deduped = deduplicate(filtered);
 
-  // Sort by date, then time, then club
   deduped.sort((a, b) =>
     a.date.localeCompare(b.date) ||
     a.startTime.localeCompare(b.startTime) ||
@@ -89,6 +117,17 @@ export async function GET(req: NextRequest) {
   );
 
   const errors = Array.from(errorSet).map((name) => `Błąd pobierania: ${name}`);
+  const body = JSON.stringify({ slots: deduped, errors, dates, fromHour, toHour });
 
-  return NextResponse.json({ slots: deduped, errors, dates, fromHour, toHour });
+  // Store in cache — only if no errors (don't cache partial results)
+  if (errorSet.size === 0) {
+    try {
+      const redis = await getRedis();
+      await redis.set(cacheKey, body, { EX: 120 }); // 2 min TTL
+    } catch (_) { /* Redis unavailable — skip caching */ }
+  }
+
+  return new NextResponse(body, {
+    headers: { 'Content-Type': 'application/json', 'X-Cache': 'MISS' },
+  });
 }
