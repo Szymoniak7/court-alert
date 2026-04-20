@@ -26,7 +26,7 @@ export const CLUBS: Club[] = [
   {
     id: 'mana-padel',
     name: 'Mana Padel',
-    source: 'kluby',
+    source: 'kluby-auth',
     klubySlug: 'mana-padel',
     defaultCourtType: 'indoor',
   },
