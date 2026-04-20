@@ -218,3 +218,31 @@ Wyciek danych z Vercel (sprzedaż env vars na zewnątrz):
 - **Redis cache odpowiedzi API (2 min TTL)** — pierwsza osoba fetuje dane, każda kolejna przez 2 min dostaje odpowiedź z cache (<100ms). Cache invalidowany przy błędach (nie cachujemy partial results).
 - **Vercel cron co 5 min** (`/api/warmup`) — pinguje API żeby zapobiec cold startom. Vercel Hobby "zasypia" funkcję po ~10 min bezczynności, cold start trwa ~6s. Cron utrzymuje funkcję ciepłą.
 - **Animacja ładowania** — odbijająca się zielona piłka padelowa z cieniem zamiast spinnera
+
+### Sesja 6 (21.04.2026)
+
+#### Naprawa deploymentu
+- **Główna przyczyna**: cron `*/5 * * * *` w `vercel.json` blokował KAŻDY deploy od czasu dodania w sesji 5 — Vercel Hobby nie obsługuje cronów częstszych niż 1x/dzień. Wszystkie pushe od `80b26f9` cicho failowały.
+- Usunięto cron z `vercel.json`, wdrożono przez `npx vercel --prod`
+- Auto-deploy z GitHub powinien wrócić do normy
+- Prawdziwy URL produkcyjny: `court-alert-nu.vercel.app` (nie `court-alert.vercel.app`)
+
+#### Kluby
+- **Loba Padel** → przeniesiona na Playtomic (tenant: `3ae6a706`), wszystkie 8 kortów indoor. Naprawia brak slotów (publiczny widok kluby.org nie pokazywał dostępności).
+- **Mana Padel** → zmieniona na `source: 'kluby-auth'`. Publiczny widok zwracał 0 slotów. Z auth działa poprawnie (potwierdzono: 23-25.04 mają sloty).
+
+#### UI — badge Indoor/Outdoor
+- Dodano badge `Indoor` / `Outdoor` / `Indoor+Outdoor` w komórkach grida (desktop) i wierszach (mobile)
+- `Indoor+Outdoor` — kolor zielony; `Indoor` — niebieski; `Outdoor` — pomarańczowy
+- `defaultCourtType` w konfiguracji klubu jako fallback gdy nazwa kortu nie zawiera słów kluczowych
+- Mana i Toro hardkod: `indoor`; Playtomic kluby: z API; Padlovnia: istniejący hardkod
+
+#### Drobne
+- Format czasu trwania: `1h30m` → `1.5h`
+- Etykiety z wielkiej litery: `Indoor`, `Outdoor`, `Indoor+Outdoor`
+
+#### Następny krok: System alertów
+Architektura uzgodniona:
+- **DB**: Supabase (PostgreSQL, darmowy tier)
+- **Email**: Resend (100 maili/dzień gratis)
+- **Cron**: cron-job.org (zewnętrzny, darmowy) → pinguje `/api/check-alerts` co 15 min
