@@ -36,20 +36,20 @@ function CourtTypeBadge({ type }: { type: 'indoor' | 'outdoor' | 'both' }) {
   if (type === 'indoor') {
     return (
       <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-900/50 text-blue-300 leading-none whitespace-nowrap flex-shrink-0">
-        indoor
+        Indoor
       </span>
     );
   }
   if (type === 'outdoor') {
     return (
       <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-900/50 text-amber-300 leading-none whitespace-nowrap flex-shrink-0">
-        outdoor
+        Outdoor
       </span>
     );
   }
   return (
-    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-800 text-gray-400 leading-none whitespace-nowrap flex-shrink-0">
-      indoor+outdoor
+    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-green-900/50 text-green-300 leading-none whitespace-nowrap flex-shrink-0">
+      Indoor+Outdoor
     </span>
   );
 }
