@@ -21,7 +21,7 @@ function CourtIcon({ className }: { className?: string }) {
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
   if (minutes % 60 === 0) return `${minutes / 60}h`;
-  return `${Math.floor(minutes / 60)}h${minutes % 60}m`;
+  return `${minutes / 60}h`;
 }
 
 function getCourtType(slots: TimeSlot[]): 'indoor' | 'outdoor' | 'both' | null {
