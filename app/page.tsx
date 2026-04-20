@@ -243,8 +243,22 @@ export default function Home() {
 
             {/* Initial loading (no data yet) */}
             {loading && (
-              <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <div className="w-8 h-8 border-2 border-indigo-500/40 border-t-indigo-500 rounded-full animate-spin" />
+              <div className="flex flex-col items-center justify-center py-24 gap-4">
+                <div className="relative flex flex-col items-center" style={{ height: 80 }}>
+                  {/* Ball */}
+                  <div
+                    className="animate-ball w-9 h-9 rounded-full"
+                    style={{
+                      background: 'radial-gradient(circle at 35% 35%, #c8f04a, #7ab800)',
+                      boxShadow: '0 2px 8px rgba(122,184,0,0.4)',
+                    }}
+                  />
+                  {/* Shadow */}
+                  <div
+                    className="animate-ball-shadow mt-1 rounded-full"
+                    style={{ width: 28, height: 6, background: 'rgba(255,255,255,0.1)' }}
+                  />
+                </div>
                 <span className="text-sm text-white/25">Sprawdzam korty...</span>
               </div>
             )}
