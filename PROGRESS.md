@@ -1,4 +1,4 @@
-# Court Alert — Stan projektu (15.04.2026)
+# Court Alert — Stan projektu (20.04.2026)
 
 ## Co to jest
 Webapka agregująca dostępność kortów padelowych w Warszawie w czasie rzeczywistym.
@@ -10,7 +10,7 @@ Repo: https://github.com/Szymoniak7/court-alert
 ## Architektura
 
 ```
-Next.js 16 App Router (TypeScript + Tailwind CSS)
+Next.js App Router (TypeScript + Tailwind CSS)
 ├── app/
 │   ├── page.tsx               — główny UI (presety, sidebar, CourtGrid)
 │   ├── layout.tsx
@@ -18,15 +18,18 @@ Next.js 16 App Router (TypeScript + Tailwind CSS)
 │   ├── api/availability/
 │   │   └── route.ts           — GET endpoint: pobiera sloty ze wszystkich klubów równolegle
 │   └── components/
-│       ├── CourtGrid.tsx      — tabela: czas × klub, klikalne komórki
-│       ├── SlotModal.tsx      — modal z listą kortów + link "Rezerwuj →"
+│       ├── CourtGrid.tsx      — tabela desktop: czas × klub, klikalne komórki
+│       ├── CourtGridMobile.tsx — widok mobile: lista czasów z wierszami per klub
+│       ├── SlotModal.tsx      — modal z listą kortów + indoor/outdoor badge + cena + "Rezerwuj →"
+│       ├── useCourtGrid.ts    — wspólna logika siatki dla desktop i mobile
 │       └── colors.ts          — paleta kolorów per klub
 └── lib/
-    ├── types.ts               — interface TimeSlot
+    ├── types.ts               — interface TimeSlot (+ courtType: indoor/outdoor)
     ├── clubs.ts               — lista 7 klubów z konfiguracją źródła danych
-    ├── presets.ts             — 5 presetów czasowych + formatDatePL
+    ├── presets.ts             — presety czasowe + formatDatePL
+    ├── pricing.ts             — dynamiczny cennik per klub (stawki z oficjalnych cenników)
     └── scrapers/
-        ├── kluby.ts           — scraper HTML dla kluby.org (Cheerio)
+        ├── kluby.ts           — scraper HTML dla kluby.org (Cheerio, rowspan-aware)
         └── playtomic.ts       — API client dla Playtomic
 ```
 
@@ -34,7 +37,7 @@ Next.js 16 App Router (TypeScript + Tailwind CSS)
 
 ## Kluby i źródła danych
 
-### Kategoria A — zaimplementowane
+### Zaimplementowane (7 klubów)
 
 | Klub | ID | Źródło | Szczegóły |
 |------|----|--------|-----------|
@@ -44,21 +47,16 @@ Next.js 16 App Router (TypeScript + Tailwind CSS)
 | InterPadel Warszawa | `interpadel` | Playtomic API | tenantId: `057c5f40-...` |
 | Warsaw Padel Club | `warsaw-padel-club` | Playtomic API | tenantId: `e7284c78-...` |
 | RQT Spot | `rqt-sport` | Playtomic API | tenantId: `44340c7a-...` |
-| Padlovnia | `padlovnia` | kluby.org (auth) | wymaga logowania, osobny portal `/klub/padlovnia/dedykowane` |
-
-### Kategoria A — do dodania
-
-| Klub | Źródło | Szczegóły |
-|------|--------|-----------|
+| Padlovnia | `padlovnia` | kluby.org (auth) | wymaga logowania, `/klub/padlovnia/dedykowane` |
 
 ### Kategoria B — małe obiekty (niski priorytet)
 
 | Klub | Uwagi |
 |------|-------|
 | WKT Mera | 2-3 korty zewnętrzne |
-| Tenes | 3 korty zewnętrzne (Jawczyce, 300m za granicą Warszawy) |
+| Tenes | 3 korty zewnętrzne (Jawczyce) |
 | Rakiety PGE Narodowy | 2-3 korty zewnętrzne |
-| Spektrum | 3 korty wewnątrz + 1 zewnętrzny |
+| Spektrum | 3 korty wewn. + 1 zewn. |
 | Rakiety Aero | do zidentyfikowania |
 | Miedzeszyn | 2 korty |
 | Sporteum | 2 korty zewnętrzne |
@@ -69,40 +67,42 @@ Next.js 16 App Router (TypeScript + Tailwind CSS)
 ## Zaimplementowane funkcjonalności
 
 ### UI
-- Widok siatki (czas × klub) — `CourtGrid.tsx`
-- Modal rezerwacji z linkami do bookingu — `SlotModal.tsx`
-- 5 presetów czasowych (Wieczory pon-pt 17-22, Poranek/Dzień/Wieczór weekend, Ten tydzień)
+- Widok siatki desktop (czas × klub) — `CourtGrid.tsx`
+- Widok mobilny — czas jako label, wiersze per klub z: nazwa | czas trwania | cena | liczba kortów
+- Modal rezerwacji: lista kortów, badge indoor/outdoor (niebieski/żółty), cena, link "Rezerwuj →"
+- 5 presetów czasowych + Dziś + Jutro
 - Sidebar desktop + poziomy scroll mobile
 - Kolorowanie komórek wg liczby kortów (1/2/3+), każdy klub ma swój kolor
-- Sticky header z przyciskiem odświeżenia + timestamp ostatniej aktualizacji
-- Filtrowanie po klubach (checkbox per klub)
-- Spinner podczas ładowania, komunikat "Brak wolnych kortów"
-- Escape + klik w tło zamyka modal
+- Sticky header z przyciskiem odświeżenia + timestamp ("przed chwilą / X min temu")
+- Filtrowanie po klubach (checkbox per klub) + Zaznacz/Odznacz wszystko
+- Animacja modala (fade-in tło, slide-up panel)
+- Blokada scrolla body gdy modal otwarty
+- Spinner podczas ładowania, kontekstowy empty state
+- Auto-refresh co 3 minuty gdy karta widoczna
+- Polska odmiana liczebników (slot/sloty/slotów, kort/korty/kortów)
 
 ### Backend / API
 - `GET /api/availability?dates=...&from=...&to=...&clubs=...`
 - Równoległe pobieranie: daty × kluby (Promise.allSettled)
-- Deduplicacja slotów (per kortId+data+czas, preferencja 90min > 60min)
-- Filtrowanie po godzinach (fromHour/toHour)
-- Filtrowanie przeszłych slotów dla dzisiaj (czas Warszawski)
-- Obsługa błędów per klub (zbiorczy error state)
+- Deduplicacja slotów (per kortId+data+czas)
+- Filtrowanie po godzinach i przeszłych slotach dla dzisiaj (czas Warszawski)
 
-### Scraper kluby.org
-- Parsowanie tabeli HTML z rowspan-aware logiką
-- Ekstrakcja ID kortu i URL rezerwacji z linków `/rezerwuj/`
-- Nazwy kortów z nagłówków tabeli (pierwsze 2 słowa)
-- `cache: 'no-store'` — zawsze świeże dane
+### Cennik (`lib/pricing.ts`)
+- Dynamiczne ceny dla wszystkich klubów kluby.org (stawki z oficjalnych cenników, sprawdzone 18.04.2026)
+- Uwzględnia: godzinę, dzień tygodnia (weekend/dzień roboczy), typ kortu (indoor/outdoor)
+- Padlovnia: osobny cennik outdoor (korty 8-11) i indoor (korty 1-7)
+- Kluby Playtomic: ceny z API bezpośrednio
 
-### Scraper Playtomic
-- Endpoint: `https://api.playtomic.io/v1/availability`
-- Cache nazw kortów 1h (in-memory, z tenant endpoint)
-- **Konwersja UTC → Europe/Warsaw** — API zwraca czasy w UTC (bug odkryty 14.04)
-- Data slotu korygowana gdy slot UTC przekracza północ (np. 23:00 UTC = 01:00 Warszawa następnego dnia)
+### Indoor/Outdoor (`courtType`)
+- Playtomic: z `properties.resource_type` w tenant endpoint
+- kluby.org: z nazwy kortu (keywords: zewn/outdoor/open vs kryt/indoor/wewn)
+- Padlovnia hardcode: korty 1-7 = indoor, 8-11 = outdoor
+- Badge wyświetlany w SlotModal
 
 ### Padlovnia (autoryzacja)
 - Login POST do `/klub/padlovnia/dedykowane/logowanie`
-- Session cache 23h (in-memory), auto re-login po wygaśnięciu
-- Body logowania wymaga pola `logowanie=1` (wartość przycisku submit)
+- Session cache 23h w Upstash Redis (key: `kluby:session:padlovnia`)
+- Fallback na świeży login gdy Redis niedostępny
 
 ---
 
@@ -111,41 +111,42 @@ Next.js 16 App Router (TypeScript + Tailwind CSS)
 ```
 KLUBY_EMAIL=szymon.garbarczyk@gmail.com
 KLUBY_PASSWORD=SIRalex2008..
+REDIS_URL=<Upstash Redis URL>
 ```
 
-Ustawione w `.env.local` (lokalnie) i w Vercel Environment Variables.
+---
+
+## Naprawione bugi (wszystkie sesje)
+
+1. **Playtomic UTC timezone** — start_time w UTC, sloty pokazywały się 2h za wcześnie/późno.
+2. **Padlovnia login** — POST body wymagał `logowanie=1` (wartość przycisku submit).
+3. **Playtomic booking URLs** — używało `clubId` zamiast `playtomicSlug`.
+4. **Stale data na Vercel** — `revalidate: 300` cachowało dane 5 min. Zamienione na `cache: 'no-store'`.
+5. **Przeszłe sloty dla dzisiaj** — błędny format locale `pl-PL`. Naprawione przez `en-CA`/`en-GB`.
+6. **endTime "25:00"** — brak `% 24` w obliczaniu godziny końca.
+7. **Podwójny fetch** — `slots.length` w deps array powodował pętlę. Naprawione przez `hasDataRef`.
+8. **Reset timera auto-refresh** — `useEffect([fetchSlots])` resetował interval przy zmianie filtrów.
+9. **Format daty "04.16"** — `slice(5).replaceAll('-','.')` dawał miesiąc.dzień. Naprawione na dzień.miesiąc.
+10. **Hardcodowane 90 min dla każdego slotu** — scraper nie sprawdzał kiedy zaczyna się kolejna rezerwacja. Przepisano `parseGrafikHtml` na 2-pass: budowa siatki + obliczenie realnego czasu do kolejnej rezerwacji. Filtr: `< 60 min` → ukryty, `> 120 min` → cappowany do 2h.
 
 ---
 
-## Naprawione bugi
+## Analiza strategiczna
 
-1. **Playtomic UTC timezone** — API zwraca start_time w UTC, nie w czasie lokalnym. Sloty pokazywały się 2h wcześniej/później. Naprawione przez konwersję `new Date(...Z).toLocaleTimeString({timeZone:'Europe/Warsaw'})`.
+### Unikalna wartość
+Jedyne zdanie opisujące unikalną wartość: *"Powiedz mi kiedy zwolni się kort."*
+Widok kalendarza robi też padelnow.org — **alerty** to jedyna funkcja której nikt nie ma.
 
-2. **Padlovnia login** — POST body wymagał pola `logowanie=1` (wartość przycisku), bez niego serwer odrzucał logowanie.
+### Co trzeba zbudować (priorytety)
+| Priorytet | Co | Dlaczego |
+|-----------|----|----|
+| 🔴 | Fix bug BANDERAS (Mana/Loba auth) | Pokazujemy błędne dane |
+| 🔴 | Alerty — formularz + DB + cron + WhatsApp/SMS | Jedyna unikalna wartość |
+| 🟡 | Dodanie nowych klubów | padelnow.org ma ~15, my mamy 7 |
+| 🟢 | Landing page / onboarding | Konwersja nowych |
+| 🟢 | PWA / add to homescreen | Retention mobile |
 
-3. **Playtomic booking URLs** — linkowanie używało `clubId` (np. `interpadel`) zamiast `playtomicSlug` (np. `interpadel-warszawa`). Naprawione przez dodanie pola `playtomicSlug` do konfiguracji klubu.
-
-4. **Stale data na Vercel** — `next: { revalidate: 300 }` cachował dane 5 min. Zamienione na `cache: 'no-store'`.
-
-5. **Przeszłe sloty dla dzisiaj** — filter Warsaw-timezone: używa `toLocaleDateString('en-CA')` i `toLocaleTimeString('en-GB')` zamiast `Intl.DateTimeFormat` z locale pl-PL (który był buggy).
-
----
-
-## Analiza strategiczna (15.04.2026)
-
-### Gdzie jesteśmy
-Solidna, dobrze wyglądająca aplikacja do przeglądania kortów. Mobile działa dobrze, UX czysty, dane aktualne. **Ale:** to nadal lepszy widok kalendarza — padelnow.org robi to samo.
-
-### Co nas odróżni
-**Alerty** — jedyna funkcja której nikt nie ma. Użytkownik ustawia: klub + godzina + dzień → dostaje WhatsApp/SMS gdy slot się zwolni. To jest produkt. Reszta to feature.
-
-### Co trzeba zbudować
-1. **Baza danych** — przechowywanie alertów użytkowników (numer, preferencje) i stanu kortów (co było wolne ostatnim razem)
-2. **Cron job** — co X minut sprawdza dostępność, porównuje z poprzednim stanem, wysyła powiadomienia gdy coś się zwolniło
-3. **Powiadomienia** — WhatsApp (Twilio) lub SMS. WhatsApp większy zasięg ale wymaga weryfikacji biznesowej. SMS prostszy technicznie.
-4. **Formularz w apce** — prosty UI: wpisz numer, wybierz preferencje, kliknij "Alertuj mnie"
-
-### Decyzje do podjęcia przed kodowaniem
+### Alerty — decyzje do podjęcia
 | Pytanie | Opcje |
 |---------|-------|
 | Gdzie baza danych? | Vercel Postgres / Supabase / PlanetScale |
@@ -155,113 +156,65 @@ Solidna, dobrze wyglądająca aplikacja do przeglądania kortów. Mobile działa
 
 ---
 
-## Krytyczna analiza UX (15.04.2026)
-
-### Problem fundamentalny
-Aplikacja rozwiązuje połowę problemu. Użytkownik widzi wolny kort → klika "Rezerwuj" → trafia na stronę klubu → musi sam znaleźć slot → może być już zajęty. To tylko lepszy widok kalendarza, nie narzędzie do rezerwacji.
-
-### Krytyczne problemy
-1. **Brak onboardingu** — nowy użytkownik nie wie co to jest, po co tu jest, co ma zrobić.
-2. **Nazwa "Court Alert" obiecuje alerty — których nie ma** — fałszywa obietnica, największa niespójność.
-3. **Dane mogą być nieaktualne** — kort pokazany jako wolny mógł być zarezerwowany 30 sekund temu. Użytkownik przechodzi przez 7 kroków żeby odkryć że slot zniknął.
-4. **Filtry zajmują za dużo miejsca na mobile** — 3 rzędy (presety + kluby + legenda) zanim pojawią się dane.
-5. **Brak personalizacji i pamięci** — za każdym razem od nowa, wszystkie kluby zaznaczone.
-6. **Modal jest słaby** — brak ceny, brak deep-linku do slotu. "Rezerwuj" to wejście na stronę klubu, nie rezerwacja.
-
-### Kluczowa decyzja strategiczna
-Czy to **narzędzie do przeglądania kortów** (to już robi padelnow.org), czy **serwis alertów** (tego nie robi nikt)?
-
-Jedyne zdanie które opisuje unikalną wartość: *"Powiedz mi kiedy zwolni się kort."*
-
-### Priorytety wynikające z analizy
-| | Co | Dlaczego |
-|--|----|----|
-| 🔴 | Alerty — formularz zbierania numerów | Jedyna unikalna wartość |
-| 🔴 | Skrócić filtry na mobile | Więcej miejsca na dane |
-| 🟡 | Zapamiętać preferencje użytkownika | Retention |
-| 🟡 | Pokazać czas ostatniej aktualizacji wyraźniej | Zaufanie do danych |
-| 🟢 | Landing page / onboarding | Konwersja nowych |
-
----
-
-## TODO — pozostałe zadania
-
-### Wysoki priorytet
-- [ ] **Alerty WhatsApp** — powiadomienie gdy pojawi się nowy wolny slot spełniający kryteria użytkownika (konkretna godzina, klub, dzień). Opcje: Twilio, WhatsApp Business API, lub Baileys (nieoficjalny). Wymaga persystencji stanu (DB lub plik) + crona.
-- [ ] **Dodanie nowych klubów** — padelnow.org pokazuje też: Miedeszyn (id:14), Spektrum (id:15), Rakiety PGE Narodowy (id:9). Trzeba zidentyfikować ich źródła danych (kluby.org / Playtomic / inne).
-
-### Średni priorytet
-- [ ] **Lepsza strona błędów** — gdy klub zwróci błąd, teraz pokazujemy tekst pod siatką. Rozważyć inline indicator w nagłówku kolumny.
-- [ ] **Bookingowy URL dla Playtomic** — teraz prowadzi do strony klubu (`/clubs/interpadel-warszawa`), nie bezpośrednio do slotu. Zbadać czy Playtomic ma deep-link do konkretnego czasu.
-- [ ] **Preset "Jutro"** — przydatny quick shortcut, teraz trzeba klikać "Wieczory" i scrollować.
-
-### Niski priorytet / do przemyślenia
-- [ ] **Filtr outdoor/indoor** — przełącznik pozwalający włączyć korty kategorii B (zewnętrzne). Dotyczy: WKT Mera, Tenes, Rakiety PGE Narodowy, Rakiety Aero, Spektrum, Miedzeszyn, Sporteum, TenisWil.
-- [ ] **Monetyzacja / formularz alertów** — zbieranie maili/numerów z filtrem preferencji zamiast bezpośredniego dostępu do siatki (zmniejsza darmowe wejścia, zwiększa wartość).
-- [ ] **Więcej niż 7 dni** — aktualnie presety patrzą max 7 dni do przodu.
-- [ ] **PWA / add to homescreen** — manifest.json + service worker.
-- [ ] **Testy** — brak jakichkolwiek testów.
-
----
-
-## Sesja 2 (16–17.04.2026)
-
-### Co zrobiono
-
-#### Naprawione bugi
-- **endTime "25:00"** — `Math.floor(endMinutes / 60)` bez `% 24` dawało godziny >24. Naprawione w obu scraperach.
-- **nowM parsing** — `toLocaleTimeString` z opcją tylko `minute` zwracał pełny string w V8. Naprawione przez pobranie `HH:MM` razem i split po `:`.
-- **Format daty "04.16"** — `slice(5).replaceAll('-','.')` dawał miesiąc.dzień zamiast dzień.miesiąc. Naprawione w `SlotModal.tsx`.
-- **Podwójny fetch** — `slots.length` w dependency array `useEffect` powodował ponowne fetchowanie po każdym załadowaniu. Naprawione przez `hasDataRef = useRef(false)`.
-- **Reset timera auto-refresh** — `useEffect([fetchSlots])` resetował interval przy każdej zmianie filtrów. Naprawione przez `fetchSlotsRef` + pusty `useEffect([], [])`.
-
-#### UI / UX
-- Dodano presety **Dziś** i **Jutro** do filtra dnia
-- Kontekstowy **empty state** (np. "Wszystkie sloty na dziś już minęły")
-- **Wskaźnik czasu odświeżenia** w nagłówku ("przed chwilą / X min temu")
-- **Zaznacz / Odznacz wszystko** dla klubów (desktop i mobile)
-- Poprawna **polska odmiana** liczebników (slot/sloty/slotów, kort/korty/kortów)
-- **Animacja modala** (fade-in tło, slide-up panel)
-- **Blokada scrolla** body gdy modal otwarty
-- **Cena** wyświetlana w modalu (z Playtomic)
-- `lang="pl"` w `layout.tsx`
-- **Auto-refresh** co 3 minuty gdy karta widoczna
-- Modal zawsze pojawia się po kliknięciu (cofnięto skrót bezpośredniego otwierania URL)
-
-#### Refaktoryzacja
-- `useCourtGrid.ts` — wspólna logika siatki dla desktop i mobile
-- `useFilters.ts` — stan filtrów + localStorage
-- `useSlots.ts` — fetch, auto-refresh, loading, błędy, helpers
-- `page.tsx`: ~400 → ~230 linii, samo JSX layoutu
-
-#### Infrastruktura — Padlovnia session cache ✅
-- Upstash Redis (Frankfurt, eu-central-1, plan free 30 MB)
-- Sesja logowania cachowana 23h pod kluczem `kluby:session:padlovnia`
-- Fallback na świeży login gdy Redis niedostępny
-- `REDIS_URL` w `.env.local` i Vercel Environment Variables
-- Pakiet `redis` (node-redis) zainstalowany
-
-### Kluczowe wnioski
-- **Vercel serverless = brak wspólnej pamięci** — in-memory cache działa lokalnie, ale na produkcji każde zapytanie może trafić na nowy kontener. Cache sesji, stan współdzielony → Redis/KV/DB.
-- **`useCallback` dependency array** — `slots.length` w tablicy zależności powoduje pętlę. Zamiast tego używać ref.
-- **Stable ref pattern** — `fetchSlotsRef.current = fetchSlots` pozwala timerowi wołać aktualną funkcję bez resetowania interwału.
-- **Tailwind v4** — klasy np. `bg-gray-950` mogą nie istnieć; lepiej `bg-[#080810]`.
-
----
-
 ## Otwarte problemy techniczne
 
-### 1. ~~Padlovnia session cache~~ — ROZWIĄZANE (sesja 2)
-Przeniesiono do Upstash Redis. Każdy kontener Vercel odczytuje tę samą sesję.
+### 1. kluby.org scraper — fragility
+Parsowanie HTML wrażliwe na zmiany layoutu strony. Jedyny sygnał awarii: `errors[]` w odpowiedzi API.
 
-### 2. kluby.org scraper — fragility
-Parsowanie HTML jest wrażliwe na zmiany layoutu strony. Nie ma żadnych testów/alertów gdy scraper przestaje działać. Jedynym sygnałem jest `errors[]` w odpowiedzi API.
+### 2. Playtomic — brak deep-linku do slotu
+Link "Rezerwuj →" prowadzi na stronę klubu, nie konkretny slot. padelnow.org ma deep-linki — prawdopodobnie generuje je przez własny backend jako `{resourceId}-{startTime}-{duration}`.
 
-### 3. Playtomic — brak deep-linku do slotu
-Link "Rezerwuj →" prowadzi na stronę klubu, nie na konkretny slot. Użytkownik musi sam znaleźć czas. padelnow.org ma deep-linki — prawdopodobnie generuje je przez własny backend (endpoint `/api/booking-link/{slotId}`). Playtomic `slotId` jest budowane po stronie klienta jako `{resourceId}-{startTime}-{duration}`.
+### 3. Deduplication preferencja 90min
+Przy deduplikacji zostaje slot 90min zamiast 60min. Może ukrywać krótsze opcje.
 
-### 4. Deduplication preferencja 90min
-Przy deduplikacji zostawiamy slot 90min zamiast 60min dla tego samego kortu/czasu. Może to ukrywać krótsze opcje. Alternatywa: pokazywać oba lub pozwolić filtrować po czasie trwania.
+---
 
-### 5. Playtomic — query na pełną dobę UTC
-Pobieramy sloty `00:00 - 23:59 UTC`, ale po konwersji na Warszawę mogą pojawić się sloty z poprzedniego/następnego dnia. Aktualnie `slotDate` jest korygowane (correct), ale `start_min/start_max` w query nie są optymalne — moglibyśmy ograniczyć do UTC 03:00-22:00 dla typowego wieczornego użycia.
+## Historia sesji
+
+### Sesja 1 (ok. 10-14.04.2026)
+- Stworzenie projektu Next.js
+- Scraper kluby.org (Cheerio, rowspan) + Playtomic API client
+- 7 klubów, podstawowy UI, deploy na Vercel
+- Naprawione: UTC timezone, Padlovnia login, booking URLs, stale data cache
+
+### Sesja 2 (16-17.04.2026)
+- Refaktoryzacja: `useCourtGrid`, `useFilters`, `useSlots`
+- Upstash Redis dla Padlovnia session cache
+- Presety Dziś/Jutro, empty state, animacje, auto-refresh
+- Naprawione: endTime >24h, podwójny fetch, reset timera, format daty
+
+### Sesja 3 (18-19.04.2026)
+- Przepisany `CourtGridMobile.tsx` (5+ iteracji) — czyste kolumny: nazwa | czas | cena | korty
+- Nowy `lib/pricing.ts` — dynamiczny cennik dla wszystkich klubów kluby.org (z oficjalnych stron)
+- Indoor/outdoor detection + badge w SlotModal
+- Padlovnia hardcode: korty 1-7 indoor, 8-11 outdoor
+- `TimeSlot` rozszerzony o `courtType`
+- Próba naprawy bugu BANDERAS (filtr tekstu linka) — **niezweryfikowana**
+
+### Sesja 4 (20.04.2026) — TUTAJ SKOŃCZYŁY SIĘ TOKENY
+- Wczytanie kontekstu z poprzedniej sesji
+- Identyfikacja prawdziwej przyczyny bugu BANDERAS: Mana Padel używa `source: 'kluby'` (bez auth), publiczny widok grafiku prawdopodobnie nie pokazuje zajętości kortów
+- **Następny krok**: zweryfikować curl-em i zmienić Mana + Loba na `source: 'kluby-auth'`
+
+### Sesja 5 (20.04.2026)
+
+#### Bugi
+- **Fix hardcodowane 90 min** — przepisano `parseGrafikHtml` na 2-pass: budowa pełnej siatki time×court, potem obliczenie realnego czasu do następnej rezerwacji (`freeCount × 30 min`). Np. kort wolny 16:00-16:30 pokazywał 90 min zamiast 30 min.
+- **Filtr < 60 min** — sloty krótsze niż 1h ukrywane (padel nie da się zarezerwować na 30 min)
+- **Cap 120 min** — sloty z oknem > 2h cappowane do 2h (standardowe rezerwacje to 1h/1.5h/2h)
+- **Fix `formatDuration`** w mobile — obsługa dowolnych czasów (30m, 1h30m, 2h) zamiast hardcoded cases
+
+#### Bezpieczeństwo — incydent Vercel (20.04.2026)
+Wyciek danych z Vercel (sprzedaż env vars na zewnątrz):
+- Zmieniono hasło konta na kluby.org
+- Zrotowano hasło Redis Cloud (baza court-alert-session)
+- Zaktualizowano `REDIS_URL` i `KLUBY_PASSWORD` w Vercel env vars + `.env.local`
+- Redeploy na Vercel z nowymi credentials
+- Włączono 2FA na koncie Vercel i GitHub
+
+#### Performance
+- **Usunięto `enrichWithPrices`** — pobierał ceny z booking pages (login + 1 HTTP request per kort = do 9 dodatkowych requestów per klub). Zastąpiony przez `calculateKlubyPrice` z dokładnym statycznym cennikiem. Efekt: -85 linii kodu, brak dodatkowych HTTP requestów.
+- **Redis connection timeout 2s** — wcześniej brak timeoutu mógł powodować wiśnięcie przy wolnym połączeniu
+- **Redis cache odpowiedzi API (2 min TTL)** — pierwsza osoba fetuje dane, każda kolejna przez 2 min dostaje odpowiedź z cache (<100ms). Cache invalidowany przy błędach (nie cachujemy partial results).
+- **Vercel cron co 5 min** (`/api/warmup`) — pinguje API żeby zapobiec cold startom. Vercel Hobby "zasypia" funkcję po ~10 min bezczynności, cold start trwa ~6s. Cron utrzymuje funkcję ciepłą.
+- **Animacja ładowania** — odbijająca się zielona piłka padelowa z cieniem zamiast spinnera
