@@ -24,6 +24,36 @@ function formatDuration(minutes: number): string {
   return `${Math.floor(minutes / 60)}h${minutes % 60}m`;
 }
 
+function getCourtType(slots: TimeSlot[]): 'indoor' | 'outdoor' | 'both' | null {
+  const types = new Set(slots.map((s) => s.courtType).filter(Boolean));
+  if (types.size === 0) return null;
+  if (types.has('indoor') && types.has('outdoor')) return 'both';
+  if (types.has('indoor')) return 'indoor';
+  return 'outdoor';
+}
+
+function CourtTypeBadge({ type }: { type: 'indoor' | 'outdoor' | 'both' }) {
+  if (type === 'indoor') {
+    return (
+      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-900/50 text-blue-300 leading-none whitespace-nowrap flex-shrink-0">
+        hala
+      </span>
+    );
+  }
+  if (type === 'outdoor') {
+    return (
+      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-900/50 text-amber-300 leading-none whitespace-nowrap flex-shrink-0">
+        zewn.
+      </span>
+    );
+  }
+  return (
+    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-800 text-gray-400 leading-none whitespace-nowrap flex-shrink-0">
+      oba
+    </span>
+  );
+}
+
 function getSlotSummary(slots: TimeSlot[]) {
   const durations = [...new Set(slots.map((s) => s.duration))].sort((a, b) => a - b);
   const courts = new Set(slots.map((s) => s.courtId)).size;
@@ -106,6 +136,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                           const cellSlots = grid[date]?.[time]?.[club.id] || [];
                           const color = CLUB_COLORS[club.id];
                           const { durationStr, hasMultipleDurations, priceStr, courts } = getSlotSummary(cellSlots);
+                          const courtType = getCourtType(cellSlots);
 
                           return (
                             <button
@@ -124,6 +155,13 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                               <span className="text-sm font-medium text-gray-200 flex-1 min-w-0 truncate text-left">
                                 {club.shortName ?? club.name.split(' ')[0]}
                               </span>
+
+                              {/* Court type badge */}
+                              {courtType && (
+                                <span className="ml-1.5 mr-1">
+                                  <CourtTypeBadge type={courtType} />
+                                </span>
+                              )}
 
                               {/* Czas — stała szerokość, wyśrodkowany */}
                               <span className="text-xs text-gray-500 w-10 text-center flex-shrink-0">
