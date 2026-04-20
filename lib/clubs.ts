@@ -17,8 +17,9 @@ export const CLUBS: Club[] = [
   {
     id: 'loba-padel',
     name: 'Loba Padel',
-    source: 'kluby',
-    klubySlug: 'loba-padel',
+    source: 'playtomic',
+    playtomicTenantId: '3ae6a706-eba4-42be-9cb3-074c7ade27bb',
+    playtomicSlug: 'loba-padel',
   },
   {
     id: 'mana-padel',
