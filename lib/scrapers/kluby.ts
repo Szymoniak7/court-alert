@@ -10,7 +10,10 @@ let redisClient: ReturnType<typeof createClient> | null = null;
 
 async function getRedis() {
   if (!redisClient) {
-    redisClient = createClient({ url: process.env.REDIS_URL });
+    redisClient = createClient({
+      url: process.env.REDIS_URL,
+      socket: { connectTimeout: 2000 },
+    });
     redisClient.on('error', (e) => console.error('Redis error:', e));
     await redisClient.connect();
   }
