@@ -273,13 +273,14 @@ export async function fetchKlubySlots(
   clubName: string,
   slug: string,
   date: string,
+  defaultCourtType?: 'indoor' | 'outdoor',
 ): Promise<TimeSlot[]> {
   const html = await fetchHtml(getGrafikUrl(slug, date));
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
-  // Oblicz cenę dynamicznie na podstawie godziny, dnia tygodnia i typu kortu
   return slots.map((s) => ({
     ...s,
-    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType),
+    courtType: s.courtType ?? defaultCourtType,
+    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType ?? defaultCourtType),
   }));
 }
 
@@ -287,7 +288,8 @@ export async function fetchKlubyAuthSlots(
   clubId: string,
   clubName: string,
   slug: string,
-  date: string
+  date: string,
+  defaultCourtType?: 'indoor' | 'outdoor',
 ): Promise<TimeSlot[]> {
   let cookies = await getSession(slug);
   const url = getGrafikUrl(slug, date);
@@ -312,6 +314,7 @@ export async function fetchKlubyAuthSlots(
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
   return slots.map((s) => ({
     ...s,
-    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType),
+    courtType: s.courtType ?? defaultCourtType,
+    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType ?? defaultCourtType),
   }));
 }

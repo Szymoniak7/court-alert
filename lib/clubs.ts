@@ -11,6 +11,8 @@ export interface Club {
   playtomicTenantId?: string;
   // Playtomic URL slug (for booking link)
   playtomicSlug?: string;
+  // Fallback court type when scraper can't detect from court name
+  defaultCourtType?: 'indoor' | 'outdoor';
 }
 
 export const CLUBS: Club[] = [
@@ -26,12 +28,14 @@ export const CLUBS: Club[] = [
     name: 'Mana Padel',
     source: 'kluby',
     klubySlug: 'mana-padel',
+    defaultCourtType: 'indoor',
   },
   {
     id: 'toro-padel',
     name: 'Toro Padel',
     source: 'kluby',
     klubySlug: 'toro-padel',
+    defaultCourtType: 'indoor',
   },
   {
     id: 'interpadel',

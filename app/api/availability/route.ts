@@ -83,9 +83,9 @@ export async function GET(req: NextRequest) {
       date,
       club,
       promise: club.source === 'kluby'
-        ? fetchKlubySlots(club.id, club.name, club.klubySlug!, date)
+        ? fetchKlubySlots(club.id, club.name, club.klubySlug!, date, club.defaultCourtType)
         : club.source === 'kluby-auth'
-        ? fetchKlubyAuthSlots(club.id, club.name, club.klubySlug!, date)
+        ? fetchKlubyAuthSlots(club.id, club.name, club.klubySlug!, date, club.defaultCourtType)
         : fetchPlaytomicSlots(club.id, club.name, club.playtomicTenantId!, date, club.playtomicSlug),
     }))
   );
