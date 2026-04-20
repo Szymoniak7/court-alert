@@ -265,89 +265,6 @@ function parseGrafikHtml(
   return slots;
 }
 
-async function fetchSlotPrice(bookingUrl: string, cookies: string): Promise<string | undefined> {
-  try {
-    const html = await fetchHtml(bookingUrl, cookies);
-    const $ = cheerio.load(html);
-
-    // Szukaj ceny w różnych miejscach
-    const candidates: string[] = [];
-
-    // Elementy z "cena" lub "price" w klasie/id
-    $('[class*="cena"],[id*="cena"],[class*="price"],[id*="price"],[class*="koszt"],[id*="koszt"]').each((_, el) => {
-      candidates.push($(el).text());
-    });
-
-    // Hidden inputs
-    $('input[name="cena"],input[name="price"],input[name="kwota"]').each((_, el) => {
-      candidates.push($(el).val() as string || '');
-    });
-
-    // Cały tekst strony — szukaj wzorca X PLN lub X zł
-    const bodyText = $('body').text();
-    candidates.push(bodyText);
-
-    for (const text of candidates) {
-      const match = text.match(/(\d+(?:[.,]\d+)?)\s*(?:PLN|zł)/i);
-      if (match) {
-        const val = parseFloat(match[1].replace(',', '.'));
-        if (val > 0 && val < 5000) return `${Math.round(val)} PLN`;
-      }
-    }
-  } catch (e) {
-    console.error('fetchSlotPrice error:', e);
-  }
-  return undefined;
-}
-
-async function enrichWithPrices(slots: TimeSlot[], slug: string): Promise<TimeSlot[]> {
-  // Toro nie ma dedykowanego portalu — nie możemy się zalogować
-  if (slug === 'toro-padel') return slots;
-
-  let cookies: string;
-  try {
-    cookies = await getSession(slug);
-  } catch (e) {
-    console.error(`enrichWithPrices: login failed for ${slug}:`, e);
-    return slots;
-  }
-
-  // Unikalne courtId — jedna cena per court (cache w Redis 12h)
-  const courtIds = [...new Set(slots.map((s) => s.courtId))];
-  const priceMap: Record<string, string | undefined> = {};
-
-  await Promise.all(
-    courtIds.map(async (courtId) => {
-      const cacheKey = `kluby:price:${slug}:${courtId}`;
-      try {
-        const redis = await getRedis();
-        const cached = await redis.get(cacheKey);
-        if (cached) {
-          priceMap[courtId] = cached === 'null' ? undefined : cached;
-          return;
-        }
-      } catch (_) { /* Redis unavailable */ }
-
-      // Weź pierwszy slot dla tego courtu i pobierz cenę
-      const sample = slots.find((s) => s.courtId === courtId);
-      if (!sample?.bookingUrl) return;
-
-      const price = await fetchSlotPrice(sample.bookingUrl, cookies);
-      priceMap[courtId] = price;
-
-      try {
-        const redis = await getRedis();
-        await redis.set(cacheKey, price ?? 'null', { EX: 12 * 60 * 60 });
-      } catch (_) { /* Redis unavailable */ }
-    })
-  );
-
-  return slots.map((s) => ({
-    ...s,
-    price: priceMap[s.courtId] ?? s.price,
-  }));
-}
-
 export async function fetchKlubySlots(
   clubId: string,
   clubName: string,
@@ -356,9 +273,8 @@ export async function fetchKlubySlots(
 ): Promise<TimeSlot[]> {
   const html = await fetchHtml(getGrafikUrl(slug, date));
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
-  const enriched = await enrichWithPrices(slots, slug);
   // Oblicz cenę dynamicznie na podstawie godziny, dnia tygodnia i typu kortu
-  return enriched.map((s) => ({
+  return slots.map((s) => ({
     ...s,
     price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType),
   }));
