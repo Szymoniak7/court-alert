@@ -37,30 +37,33 @@ Next.js App Router (TypeScript + Tailwind CSS)
 
 ## Kluby i źródła danych
 
-### Zaimplementowane (7 klubów)
+### Zaimplementowane (10 klubów)
 
 | Klub | ID | Źródło | Szczegóły |
 |------|----|--------|-----------|
-| Loba Padel | `loba-padel` | kluby.org (public) | slug: `loba-padel` |
-| Mana Padel | `mana-padel` | kluby.org (public) | slug: `mana-padel` |
-| Toro Padel | `toro-padel` | kluby.org (public) | slug: `toro-padel` (URL różna: `/toro-padel/grafik`) |
+| Loba Padel | `loba-padel` | Playtomic API | tenantId: `3ae6a706-...` |
+| Mana Padel | `mana-padel` | kluby.org (auth) | slug: `mana-padel` |
+| Toro Padel | `toro-padel` | kluby.org (public) | slug: `toro-padel` |
 | InterPadel Warszawa | `interpadel` | Playtomic API | tenantId: `057c5f40-...` |
 | Warsaw Padel Club | `warsaw-padel-club` | Playtomic API | tenantId: `e7284c78-...` |
 | RQT Spot | `rqt-sport` | Playtomic API | tenantId: `44340c7a-...` |
-| Padlovnia | `padlovnia` | kluby.org (auth) | wymaga logowania, `/klub/padlovnia/dedykowane` |
+| Padlovnia | `padlovnia` | kluby.org (auth) | wymaga logowania |
+| Rakiety PGE Narodowy | `rakiety-pge-narodowy` | Playtomic API | tenantId: `153bbff6-...`, 5 outdoor (+ 5 indoor od 1.07.2026) |
+| Rakiety Aero | `rakiety-aero` | Playtomic API | tenantId: `f3f86625-...`, 1 outdoor, Wał Miedzeszyński |
+| ProPadel Jutrzenki | `propadel` | kluby.org (auth) | slug: `propadel`, 5 indoor |
 
 ### Kategoria B — małe obiekty (niski priorytet)
 
 | Klub | Uwagi |
 |------|-------|
-| WKT Mera | 2-3 korty zewnętrzne |
-| Tenes | 3 korty zewnętrzne (Jawczyce) |
-| Rakiety PGE Narodowy | 2-3 korty zewnętrzne |
-| Spektrum | 3 korty wewn. + 1 zewn. |
-| Rakiety Aero | do zidentyfikowania |
-| Miedzeszyn | 2 korty |
-| Sporteum | 2 korty zewnętrzne |
-| TenisWil | 3 korty zewnętrzne |
+| WKT Mera | 3 outdoor padel + 3 SmartCourt (squash), mieszany obiekt |
+| Tenes | mieszane tennis/padel, wymaga auth |
+| Sporteum | 6 kortów (2x balon), sport niezidentyfikowany |
+| TenisWil | głównie tenis |
+| Miedzeszyn | 8 kortów, prawdopodobnie mieszane |
+| Happy Padel | wymaga auth, 1 kort |
+| Bulwary Wiślane | wymaga auth |
+| Sinus Sport Club | wymaga auth |
 
 ---
 
@@ -240,6 +243,14 @@ Wyciek danych z Vercel (sprzedaż env vars na zewnątrz):
 #### Drobne
 - Format czasu trwania: `1h30m` → `1.5h`
 - Etykiety z wielkiej litery: `Indoor`, `Outdoor`, `Indoor+Outdoor`
+
+### Sesja 7 (21.04.2026)
+
+#### Nowe kluby (+3, łącznie 10)
+- **Rakiety PGE Narodowy** — Playtomic `153bbff6`, 5 kortów outdoor (+ 5 indoor od 1.07.2026)
+- **Rakiety Aero** — Playtomic `f3f86625`, 1 kort outdoor, Wał Miedzeszyński
+- **ProPadel Jutrzenki** — kluby-auth, slug `propadel`, 5 kortów indoor
+- Refaktoryzacja: `getCourtType` + `CourtTypeBadge` wyekstrahowane do `courtType.tsx`
 
 #### Następny krok: System alertów
 Architektura uzgodniona:
