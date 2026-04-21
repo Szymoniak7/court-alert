@@ -7,6 +7,7 @@ import { CLUB_COLORS } from './colors';
 import { formatDatePL } from '@/lib/presets';
 import SlotModal from './SlotModal';
 import { useCourtGrid } from './useCourtGrid';
+import { getCourtType, CourtTypeBadge } from './courtType';
 
 function CourtIcon({ className }: { className?: string }) {
   return (
@@ -24,35 +25,6 @@ function formatDuration(minutes: number): string {
   return `${minutes / 60}h`;
 }
 
-function getCourtType(slots: TimeSlot[]): 'indoor' | 'outdoor' | 'both' | null {
-  const types = new Set(slots.map((s) => s.courtType).filter(Boolean));
-  if (types.size === 0) return null;
-  if (types.has('indoor') && types.has('outdoor')) return 'both';
-  if (types.has('indoor')) return 'indoor';
-  return 'outdoor';
-}
-
-function CourtTypeBadge({ type }: { type: 'indoor' | 'outdoor' | 'both' }) {
-  if (type === 'indoor') {
-    return (
-      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-900/50 text-blue-300 leading-none whitespace-nowrap flex-shrink-0">
-        Indoor
-      </span>
-    );
-  }
-  if (type === 'outdoor') {
-    return (
-      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-900/50 text-amber-300 leading-none whitespace-nowrap flex-shrink-0">
-        Outdoor
-      </span>
-    );
-  }
-  return (
-    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-green-900/50 text-green-300 leading-none whitespace-nowrap flex-shrink-0">
-      Indoor+Outdoor
-    </span>
-  );
-}
 
 function getSlotSummary(slots: TimeSlot[]) {
   const durations = [...new Set(slots.map((s) => s.duration))].sort((a, b) => a - b);
@@ -156,12 +128,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                                 {club.shortName ?? club.name.split(' ')[0]}
                               </span>
 
-                              {/* Court type badge */}
-                              {courtType && (
-                                <span className="ml-1.5 mr-1">
-                                  <CourtTypeBadge type={courtType} />
-                                </span>
-                              )}
+                              {courtType && <CourtTypeBadge type={courtType} className="flex-shrink-0 ml-1.5 mr-1" />}
 
                               {/* Czas — stała szerokość, wyśrodkowany */}
                               <span className="text-xs text-gray-500 w-10 text-center flex-shrink-0">

@@ -46,4 +46,10 @@ export const CLUB_COLORS: Record<string, {
     badge: 'bg-cyan-950 text-cyan-300 border-cyan-800',
     header: 'text-cyan-400',
   },
+  'rakiety-pge-narodowy': {
+    dot: 'bg-red-400',
+    cell: 'bg-red-500/20 border-red-500/35 text-red-200 hover:bg-red-500/30',
+    badge: 'bg-red-950 text-red-300 border-red-800',
+    header: 'text-red-400',
+  },
 };

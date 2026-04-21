@@ -65,4 +65,13 @@ export const CLUBS: Club[] = [
     source: 'kluby-auth',
     klubySlug: 'padlovnia',
   },
+  {
+    id: 'rakiety-pge-narodowy',
+    name: 'Rakiety PGE Narodowy',
+    shortName: 'Rakiety',
+    source: 'playtomic',
+    playtomicTenantId: '153bbff6-abf6-4ffe-ad93-ba1045e9d43b',
+    playtomicSlug: 'rakiety-pge-narodowy',
+    defaultCourtType: 'outdoor',
+  },
 ];

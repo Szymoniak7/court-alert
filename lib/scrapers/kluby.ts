@@ -277,11 +277,10 @@ export async function fetchKlubySlots(
 ): Promise<TimeSlot[]> {
   const html = await fetchHtml(getGrafikUrl(slug, date));
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
-  return slots.map((s) => ({
-    ...s,
-    courtType: s.courtType ?? defaultCourtType,
-    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType ?? defaultCourtType),
-  }));
+  return slots.map((s) => {
+    const courtType = s.courtType ?? defaultCourtType;
+    return { ...s, courtType, price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, courtType) };
+  });
 }
 
 export async function fetchKlubyAuthSlots(
@@ -312,9 +311,8 @@ export async function fetchKlubyAuthSlots(
   }
 
   const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
-  return slots.map((s) => ({
-    ...s,
-    courtType: s.courtType ?? defaultCourtType,
-    price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, s.courtType ?? defaultCourtType),
-  }));
+  return slots.map((s) => {
+    const courtType = s.courtType ?? defaultCourtType;
+    return { ...s, courtType, price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, courtType) };
+  });
 }

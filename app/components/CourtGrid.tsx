@@ -7,36 +7,7 @@ import { CLUB_COLORS } from './colors';
 import { formatDatePL } from '@/lib/presets';
 import SlotModal from './SlotModal';
 import { useCourtGrid } from './useCourtGrid';
-
-function getCourtType(slots: TimeSlot[]): 'indoor' | 'outdoor' | 'both' | null {
-  const types = new Set(slots.map((s) => s.courtType).filter(Boolean));
-  if (types.size === 0) return null;
-  if (types.has('indoor') && types.has('outdoor')) return 'both';
-  if (types.has('indoor')) return 'indoor';
-  return 'outdoor';
-}
-
-function CourtTypeBadge({ type }: { type: 'indoor' | 'outdoor' | 'both' }) {
-  if (type === 'indoor') {
-    return (
-      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-900/50 text-blue-300 leading-none whitespace-nowrap">
-        Indoor
-      </span>
-    );
-  }
-  if (type === 'outdoor') {
-    return (
-      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-900/50 text-amber-300 leading-none whitespace-nowrap">
-        Outdoor
-      </span>
-    );
-  }
-  return (
-    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-green-900/50 text-green-300 leading-none whitespace-nowrap">
-      Indoor+Outdoor
-    </span>
-  );
-}
+import { getCourtType, CourtTypeBadge } from './courtType';
 
 interface Props {
   slots: TimeSlot[];
@@ -148,11 +119,7 @@ export default function CourtGrid({ slots, clubs, selectedClubs }: Props) {
                                 <span className="text-[10px] opacity-70 mt-0.5 leading-none">
                                   {count === 1 ? 'kort' : count < 5 ? 'korty' : 'kortów'}
                                 </span>
-                                {courtType && (
-                                  <span className="mt-1">
-                                    <CourtTypeBadge type={courtType} />
-                                  </span>
-                                )}
+                                {courtType && <CourtTypeBadge type={courtType} className="mt-1" />}
                               </button>
                             </td>
                           );
