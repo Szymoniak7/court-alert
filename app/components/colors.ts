@@ -64,4 +64,34 @@ export const CLUB_COLORS: Record<string, {
     badge: 'bg-violet-950 text-violet-300 border-violet-800',
     header: 'text-violet-400',
   },
+  'mera': {
+    dot: 'bg-teal-400',
+    cell: 'bg-teal-500/20 border-teal-500/35 text-teal-200 hover:bg-teal-500/30',
+    badge: 'bg-teal-950 text-teal-300 border-teal-800',
+    header: 'text-teal-400',
+  },
+  'sporteum': {
+    dot: 'bg-lime-400',
+    cell: 'bg-lime-500/20 border-lime-500/35 text-lime-200 hover:bg-lime-500/30',
+    badge: 'bg-lime-950 text-lime-300 border-lime-800',
+    header: 'text-lime-400',
+  },
+  'miedzeszyn': {
+    dot: 'bg-sky-400',
+    cell: 'bg-sky-500/20 border-sky-500/35 text-sky-200 hover:bg-sky-500/30',
+    badge: 'bg-sky-950 text-sky-300 border-sky-800',
+    header: 'text-sky-400',
+  },
+  'teniswil': {
+    dot: 'bg-pink-400',
+    cell: 'bg-pink-500/20 border-pink-500/35 text-pink-200 hover:bg-pink-500/30',
+    badge: 'bg-pink-950 text-pink-300 border-pink-800',
+    header: 'text-pink-400',
+  },
+  'tenes': {
+    dot: 'bg-amber-400',
+    cell: 'bg-amber-500/20 border-amber-500/35 text-amber-200 hover:bg-amber-500/30',
+    badge: 'bg-amber-950 text-amber-300 border-amber-800',
+    header: 'text-amber-400',
+  },
 };

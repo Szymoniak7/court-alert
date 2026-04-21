@@ -21,7 +21,7 @@ async function getRedis() {
 }
 
 // Clubs that use the public /slug/grafik URL (general login, not dedykowane)
-const PUBLIC_GRAFIK_SLUGS = new Set(['toro-padel', 'propadel']);
+const PUBLIC_GRAFIK_SLUGS = new Set(['toro-padel', 'propadel', 'mera', 'sporteum', 'miedzeszyn', 'teniswil', 'tenes']);
 
 function getGrafikUrl(slug: string, date: string): string {
   if (PUBLIC_GRAFIK_SLUGS.has(slug)) {
