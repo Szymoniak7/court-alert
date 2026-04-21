@@ -46,6 +46,50 @@ const PRICING: Record<string, ClubPricing> = {
       { hourlyRate: 192, weekendOnly: true },
     ],
   },
+  'mera': {
+    // https://kluby.org/mera — cennik padel: pn-nd cały dzień 110 PLN/h (ważny do 30.04.2026)
+    defaultHourlyRate: 110,
+    tiers: [
+      { hourlyRate: 110 },
+    ],
+  },
+  'sporteum': {
+    // https://sporteum.pl/padel/ — off-peak pn-pt 8-15: 110, peak 15-23 + weekend: 130
+    defaultHourlyRate: 130,
+    tiers: [
+      { hourlyRate: 110, weekdayOnly: true, fromHour: 8, toHour: 15 },
+      { hourlyRate: 130, weekdayOnly: true, fromHour: 15, toHour: 23 },
+      { hourlyRate: 130, weekendOnly: true },
+    ],
+  },
+  'miedzeszyn': {
+    // https://www.klubmiedzeszyn.pl/padel — pn-pt 8-16: 120, 16-22: 160 / weekend 8-22: 160
+    defaultHourlyRate: 160,
+    tiers: [
+      { hourlyRate: 120, weekdayOnly: true, fromHour: 8,  toHour: 16 },
+      { hourlyRate: 160, weekdayOnly: true, fromHour: 16, toHour: 22 },
+      { hourlyRate: 160, weekendOnly: true },
+    ],
+  },
+  'teniswil': {
+    // https://teniswil.pl/padel/ — pn-pt 7-16: 80, 16-22: 100 / weekend: 100
+    defaultHourlyRate: 100,
+    tiers: [
+      { hourlyRate: 80,  weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 100, weekdayOnly: true, fromHour: 16, toHour: 22 },
+      { hourlyRate: 100, weekendOnly: true },
+    ],
+  },
+  'tenes': {
+    // https://tenes.pl — happy hours pn-pt 7-15 + weekend 19-23: 90 / prime time: 110
+    defaultHourlyRate: 110,
+    tiers: [
+      { hourlyRate: 90,  weekdayOnly: true, fromHour: 7,  toHour: 15 },
+      { hourlyRate: 110, weekdayOnly: true, fromHour: 15, toHour: 23 },
+      { hourlyRate: 90,  weekendOnly: true, fromHour: 19, toHour: 23 },
+      { hourlyRate: 110, weekendOnly: true, fromHour: 7,  toHour: 19 },
+    ],
+  },
   'padlovnia': {
     // https://padlovnia.pl — cennik zimowy 2025-2026
     // Indoor: pn-pt 07-16: 140, 16-24: 180 / weekend: 180
