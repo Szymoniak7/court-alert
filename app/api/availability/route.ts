@@ -7,6 +7,25 @@ import { createClient } from 'redis';
 
 export const dynamic = 'force-dynamic';
 
+// Limit concurrent requests to kluby.org to avoid rate limiting
+function makeSemaphore(limit: number) {
+  let active = 0;
+  const queue: (() => void)[] = [];
+  return async function<T>(fn: () => Promise<T>): Promise<T> {
+    if (active >= limit) {
+      await new Promise<void>((resolve) => queue.push(resolve));
+    }
+    active++;
+    try {
+      return await fn();
+    } finally {
+      active--;
+      queue.shift()?.();
+    }
+  };
+}
+const klubySemaphore = makeSemaphore(8);
+
 let redisClient: ReturnType<typeof createClient> | null = null;
 
 async function getRedis() {
@@ -83,9 +102,9 @@ export async function GET(req: NextRequest) {
       date,
       club,
       promise: club.source === 'kluby'
-        ? fetchKlubySlots(club.id, club.name, club.klubySlug!, date, club.defaultCourtType)
+        ? klubySemaphore(() => fetchKlubySlots(club.id, club.name, club.klubySlug!, date, club.defaultCourtType))
         : club.source === 'kluby-auth'
-        ? fetchKlubyAuthSlots(club.id, club.name, club.klubySlug!, date, club.defaultCourtType)
+        ? klubySemaphore(() => fetchKlubyAuthSlots(club.id, club.name, club.klubySlug!, date, club.defaultCourtType))
         : fetchPlaytomicSlots(club.id, club.name, club.playtomicTenantId!, date, club.playtomicSlug),
     }))
   );
