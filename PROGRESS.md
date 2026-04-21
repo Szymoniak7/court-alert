@@ -1,4 +1,4 @@
-# Court Alert — Stan projektu (20.04.2026)
+# Court Alert — Stan projektu (22.04.2026)
 
 ## Co to jest
 Webapka agregująca dostępność kortów padelowych w Warszawie w czasie rzeczywistym.
@@ -25,7 +25,7 @@ Next.js App Router (TypeScript + Tailwind CSS)
 │       └── colors.ts          — paleta kolorów per klub
 └── lib/
     ├── types.ts               — interface TimeSlot (+ courtType: indoor/outdoor)
-    ├── clubs.ts               — lista 7 klubów z konfiguracją źródła danych
+    ├── clubs.ts               — lista 15 klubów z konfiguracją źródła danych
     ├── presets.ts             — presety czasowe + formatDatePL
     ├── pricing.ts             — dynamiczny cennik per klub (stawki z oficjalnych cenników)
     └── scrapers/
@@ -37,33 +37,33 @@ Next.js App Router (TypeScript + Tailwind CSS)
 
 ## Kluby i źródła danych
 
-### Zaimplementowane (10 klubów)
+### Zaimplementowane (15 klubów)
 
 | Klub | ID | Źródło | Szczegóły |
 |------|----|--------|-----------|
 | Loba Padel | `loba-padel` | Playtomic API | tenantId: `3ae6a706-...` |
-| Mana Padel | `mana-padel` | kluby.org (auth) | slug: `mana-padel` |
-| Toro Padel | `toro-padel` | kluby.org (public) | slug: `toro-padel` |
+| Mana Padel | `mana-padel` | kluby.org (auth) | slug: `mana-padel`, indoor |
+| Toro Padel | `toro-padel` | kluby.org (public) | slug: `toro-padel`, indoor |
 | InterPadel Warszawa | `interpadel` | Playtomic API | tenantId: `057c5f40-...` |
 | Warsaw Padel Club | `warsaw-padel-club` | Playtomic API | tenantId: `e7284c78-...` |
 | RQT Spot | `rqt-sport` | Playtomic API | tenantId: `44340c7a-...` |
-| Padlovnia | `padlovnia` | kluby.org (auth) | wymaga logowania |
+| Padlovnia | `padlovnia` | kluby.org (auth) | slug: `padlovnia`, korty 1-7 indoor / 8-11 outdoor |
 | Rakiety PGE Narodowy | `rakiety-pge-narodowy` | Playtomic API | tenantId: `153bbff6-...`, 5 outdoor (+ 5 indoor od 1.07.2026) |
-| Rakiety Aero | `rakiety-aero` | Playtomic API | tenantId: `f3f86625-...`, 1 outdoor, Wał Miedzeszyński |
+| Rakiety Aero | `rakiety-aero` | Playtomic API | tenantId: `f3f86625-...`, 1 outdoor |
 | ProPadel Jutrzenki | `propadel` | kluby.org (auth) | slug: `propadel`, 5 indoor |
+| WKT Mera | `mera` | kluby.org (auth) | slug: `mera`, outdoor |
+| Sporteum Power Padel | `sporteum` | kluby.org (auth) | slug: `sporteum`, outdoor |
+| Klub Miedzeszyn | `miedzeszyn` | kluby.org (auth) | slug: `miedzeszyn`, indoor |
+| TenisWil | `teniswil` | kluby.org (auth) | slug: `teniswil`, outdoor |
+| Tenes Jawczyce | `tenes` | kluby.org (auth) | slug: `tenes`, outdoor |
 
-### Kategoria B — małe obiekty (niski priorytet)
+### Pominięte (celowo)
 
-| Klub | Uwagi |
+| Klub | Powód |
 |------|-------|
-| WKT Mera | 3 outdoor padel + 3 SmartCourt (squash), mieszany obiekt |
-| Tenes | mieszane tennis/padel, wymaga auth |
-| Sporteum | 6 kortów (2x balon), sport niezidentyfikowany |
-| TenisWil | głównie tenis |
-| Miedzeszyn | 8 kortów, prawdopodobnie mieszane |
-| Happy Padel | wymaga auth, 1 kort |
-| Bulwary Wiślane | wymaga auth |
-| Sinus Sport Club | wymaga auth |
+| Happy Padel | 1 kort, zbyt mały |
+| Bulwary Wiślane | wymaga auth, niepewne API |
+| Sinus Sport Club | wymaga auth, niepewne API |
 
 ---
 
@@ -251,6 +251,36 @@ Wyciek danych z Vercel (sprzedaż env vars na zewnątrz):
 - **Rakiety Aero** — Playtomic `f3f86625`, 1 kort outdoor, Wał Miedzeszyński
 - **ProPadel Jutrzenki** — kluby-auth, slug `propadel`, 5 kortów indoor
 - Refaktoryzacja: `getCourtType` + `CourtTypeBadge` wyekstrahowane do `courtType.tsx`
+
+### Sesja 8 (22.04.2026)
+
+#### Nowe kluby (+5, łącznie 15)
+- **WKT Mera** — kluby-auth, slug `mera`, 3 outdoor
+- **Sporteum Power Padel** — kluby-auth, slug `sporteum`, outdoor
+- **Klub Miedzeszyn** — kluby-auth, slug `miedzeszyn`, indoor
+- **TenisWil** — kluby-auth, slug `teniswil`, outdoor
+- **Tenes Jawczyce** — kluby-auth, slug `tenes`, outdoor
+- Cennik dodany dla wszystkich 5 nowych klubów w `lib/pricing.ts`
+- Kolory dodane w `app/components/colors.ts`
+
+#### Naprawa produkcji — rate limiting kluby.org
+Wszystkie 8 klubów kluby-auth sypało błędem "Błąd pobierania". Diagnoza: `getDates('weekdays')` = 10 dat × 8 klubów = 80 równoległych requestów do kluby.org → rate limiting.
+
+Naprawy (2 commity):
+1. **Semaphore** (`makeSemaphore(8)`) w `route.ts` — max 8 równoległych requestów do kluby.org
+2. **Per-club-per-date slot cache** w Redis (TTL 5 min) — cold cache fetuje sieć, warm cache zwraca <10ms
+   - Klucz: `slots:v1:{clubId}:{date}`
+   - Zaimplementowane w obu scraperach: `kluby.ts` i `playtomic.ts`
+
+#### Architektura cache (3 warstwy)
+1. `slots:v1:{clubId}:{date}` — 5 min, poziom scrapera (główna optymalizacja)
+2. `availability:v1:...` — 2 min, poziom API route (exact query)
+3. Semaphore limit=8 — ochrona przed stampede przy zimnym cache
+
+#### Skalowalność — notatka
+Przy ~45 klubach (skala ogólnopolska) obecna architektura pull-on-demand się posypie (Vercel timeout).
+Właściwe rozwiązanie: background pre-fetch (cron co 5 min → zapisuje do Redis, API tylko czyta).
+Do wdrożenia przy okazji systemu alertów (i tak potrzebny cron).
 
 #### Następny krok: System alertów
 Architektura uzgodniona:
