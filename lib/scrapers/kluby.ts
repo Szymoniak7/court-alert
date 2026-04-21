@@ -5,6 +5,7 @@ import { calculateKlubyPrice } from '../pricing';
 
 const KLUBY_BASE = 'https://kluby.org';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const SLOT_CACHE_TTL = 5 * 60; // 5 min
 
 let redisClient: ReturnType<typeof createClient> | null = null;
 
@@ -18,6 +19,23 @@ async function getRedis() {
     await redisClient.connect();
   }
   return redisClient;
+}
+
+async function withSlotCache(key: string, fn: () => Promise<TimeSlot[]>): Promise<TimeSlot[]> {
+  try {
+    const redis = await getRedis();
+    const cached = await redis.get(key);
+    if (cached) return JSON.parse(cached) as TimeSlot[];
+  } catch (_) {}
+
+  const slots = await fn();
+
+  try {
+    const redis = await getRedis();
+    await redis.set(key, JSON.stringify(slots), { EX: SLOT_CACHE_TTL });
+  } catch (_) {}
+
+  return slots;
 }
 
 // Clubs that use the public /slug/grafik URL (general login, not dedykowane)
@@ -284,11 +302,13 @@ export async function fetchKlubySlots(
   date: string,
   defaultCourtType?: 'indoor' | 'outdoor',
 ): Promise<TimeSlot[]> {
-  const html = await fetchHtml(getGrafikUrl(slug, date));
-  const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
-  return slots.map((s) => {
-    const courtType = s.courtType ?? defaultCourtType;
-    return { ...s, courtType, price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, courtType) };
+  return withSlotCache(`slots:v1:${clubId}:${date}`, async () => {
+    const html = await fetchHtml(getGrafikUrl(slug, date));
+    const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
+    return slots.map((s) => {
+      const courtType = s.courtType ?? defaultCourtType;
+      return { ...s, courtType, price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, courtType) };
+    });
   });
 }
 
@@ -303,29 +323,31 @@ export async function fetchKlubyAuthSlots(
   date: string,
   defaultCourtType?: 'indoor' | 'outdoor',
 ): Promise<TimeSlot[]> {
-  let cookies = await getSession();
-  const url = getGrafikUrl(slug, date);
-  let html = await fetchHtml(url, cookies);
+  return withSlotCache(`slots:v1:${clubId}:${date}`, async () => {
+    let cookies = await getSession();
+    const url = getGrafikUrl(slug, date);
+    let html = await fetchHtml(url, cookies);
 
-  // If session expired, clear Redis and re-login once
-  if (isSessionExpired(html)) {
-    try {
-      const redis = await getRedis();
-      await redis.del(GENERAL_SESSION_KEY);
-    } catch (e) {
-      console.error('Redis del error:', e);
+    // If session expired, clear Redis and re-login once
+    if (isSessionExpired(html)) {
+      try {
+        const redis = await getRedis();
+        await redis.del(GENERAL_SESSION_KEY);
+      } catch (e) {
+        console.error('Redis del error:', e);
+      }
+      cookies = await loginKlubyGeneral();
+      html = await fetchHtml(url, cookies);
     }
-    cookies = await loginKlubyGeneral();
-    html = await fetchHtml(url, cookies);
-  }
 
-  if (isSessionExpired(html)) {
-    throw new Error(`Auth failed for ${slug}`);
-  }
+    if (isSessionExpired(html)) {
+      throw new Error(`Auth failed for ${slug}`);
+    }
 
-  const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
-  return slots.map((s) => {
-    const courtType = s.courtType ?? defaultCourtType;
-    return { ...s, courtType, price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, courtType) };
+    const slots = parseGrafikHtml(html, clubId, clubName, slug, date);
+    return slots.map((s) => {
+      const courtType = s.courtType ?? defaultCourtType;
+      return { ...s, courtType, price: s.price ?? calculateKlubyPrice(clubId, s.startTime, s.date, s.duration, courtType) };
+    });
   });
 }
