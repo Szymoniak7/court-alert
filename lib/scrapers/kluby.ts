@@ -20,9 +20,12 @@ async function getRedis() {
   return redisClient;
 }
 
+// Clubs that use the public /slug/grafik URL (general login, not dedykowane)
+const PUBLIC_GRAFIK_SLUGS = new Set(['toro-padel', 'propadel']);
+
 function getGrafikUrl(slug: string, date: string): string {
-  if (slug === 'toro-padel') {
-    return `${KLUBY_BASE}/toro-padel/grafik?data_grafiku=${date}&dyscyplina=4`;
+  if (PUBLIC_GRAFIK_SLUGS.has(slug)) {
+    return `${KLUBY_BASE}/${slug}/grafik?data_grafiku=${date}&dyscyplina=4`;
   }
   return `${KLUBY_BASE}/klub/${slug}/dedykowane/grafik?data_grafiku=${date}&dyscyplina=4`;
 }
@@ -37,13 +40,12 @@ function addMinutes(time: string, minutes: number): string {
   return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-async function loginKluby(slug: string): Promise<string> {
+async function loginKlubyDedicated(slug: string): Promise<string> {
   const email = process.env.KLUBY_EMAIL;
   const password = process.env.KLUBY_PASSWORD;
   if (!email || !password) throw new Error('KLUBY_EMAIL / KLUBY_PASSWORD not set');
 
   const loginUrl = `${KLUBY_BASE}/klub/${slug}/dedykowane/logowanie`;
-
   const body = new URLSearchParams({
     konto: email,
     haslo: password,
@@ -65,32 +67,55 @@ async function loginKluby(slug: string): Promise<string> {
     redirect: 'manual',
   });
 
-  // Collect Set-Cookie headers
   const setCookies = res.headers.getSetCookie?.() ?? [];
   if (!setCookies.length) throw new Error(`Login failed for ${slug} — no cookies returned`);
+  return setCookies.map((c) => c.split(';')[0]).join('; ');
+}
 
-  // Parse into "name=value" pairs
-  const cookies = setCookies
-    .map((c) => c.split(';')[0])
-    .join('; ');
+async function loginKlubyGeneral(): Promise<string> {
+  const email = process.env.KLUBY_EMAIL;
+  const password = process.env.KLUBY_PASSWORD;
+  if (!email || !password) throw new Error('KLUBY_EMAIL / KLUBY_PASSWORD not set');
 
-  return cookies;
+  const loginUrl = `${KLUBY_BASE}/logowanie`;
+  const body = new URLSearchParams({
+    konto: email,
+    haslo: password,
+    remember: '1',
+    logowanie: '1',
+  });
+
+  const res = await fetch(loginUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': UA,
+      Referer: loginUrl,
+      Origin: KLUBY_BASE,
+    },
+    body: body.toString(),
+    redirect: 'manual',
+  });
+
+  const setCookies = res.headers.getSetCookie?.() ?? [];
+  if (!setCookies.length) throw new Error('General kluby.org login failed — no cookies returned');
+  return setCookies.map((c) => c.split(';')[0]).join('; ');
 }
 
 async function getSession(slug: string): Promise<string> {
-  const key = `kluby:session:${slug}`;
+  const isPublic = PUBLIC_GRAFIK_SLUGS.has(slug);
+  const key = isPublic ? 'kluby:session:general' : `kluby:session:${slug}`;
   try {
     const redis = await getRedis();
     const cached = await redis.get(key);
     if (cached) return cached;
 
-    const cookies = await loginKluby(slug);
+    const cookies = isPublic ? await loginKlubyGeneral() : await loginKlubyDedicated(slug);
     await redis.set(key, cookies, { EX: 23 * 60 * 60 }); // 23h TTL
     return cookies;
   } catch (e) {
-    // Redis unavailable — fall back to fresh login without caching
     console.error('Redis getSession error:', e);
-    return loginKluby(slug);
+    return isPublic ? loginKlubyGeneral() : loginKlubyDedicated(slug);
   }
 }
 
@@ -283,6 +308,13 @@ export async function fetchKlubySlots(
   });
 }
 
+function isSessionExpired(html: string, slug: string): boolean {
+  if (PUBLIC_GRAFIK_SLUGS.has(slug)) {
+    return html.includes(`/logowanie?page=/${slug}/`);
+  }
+  return html.includes('Musisz być zalogowany');
+}
+
 export async function fetchKlubyAuthSlots(
   clubId: string,
   clubName: string,
@@ -290,23 +322,26 @@ export async function fetchKlubyAuthSlots(
   date: string,
   defaultCourtType?: 'indoor' | 'outdoor',
 ): Promise<TimeSlot[]> {
+  const isPublic = PUBLIC_GRAFIK_SLUGS.has(slug);
+  const redisKey = isPublic ? 'kluby:session:general' : `kluby:session:${slug}`;
+
   let cookies = await getSession(slug);
   const url = getGrafikUrl(slug, date);
   let html = await fetchHtml(url, cookies);
 
   // If session expired, clear Redis and re-login once
-  if (html.includes('Musisz być zalogowany')) {
+  if (isSessionExpired(html, slug)) {
     try {
       const redis = await getRedis();
-      await redis.del(`kluby:session:${slug}`);
+      await redis.del(redisKey);
     } catch (e) {
       console.error('Redis del error:', e);
     }
-    cookies = await loginKluby(slug);
+    cookies = isPublic ? await loginKlubyGeneral() : await loginKlubyDedicated(slug);
     html = await fetchHtml(url, cookies);
   }
 
-  if (html.includes('Musisz być zalogowany')) {
+  if (isSessionExpired(html, slug)) {
     throw new Error(`Auth failed for ${slug}`);
   }
 
