@@ -40,37 +40,6 @@ function addMinutes(time: string, minutes: number): string {
   return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-async function loginKlubyDedicated(slug: string): Promise<string> {
-  const email = process.env.KLUBY_EMAIL;
-  const password = process.env.KLUBY_PASSWORD;
-  if (!email || !password) throw new Error('KLUBY_EMAIL / KLUBY_PASSWORD not set');
-
-  const loginUrl = `${KLUBY_BASE}/klub/${slug}/dedykowane/logowanie`;
-  const body = new URLSearchParams({
-    konto: email,
-    haslo: password,
-    remember: '1',
-    page: `/klub/${slug}/dedykowane`,
-    logowanie_dedykowane: '1',
-    logowanie: '1',
-  });
-
-  const res = await fetch(loginUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': UA,
-      Referer: loginUrl,
-      Origin: KLUBY_BASE,
-    },
-    body: body.toString(),
-    redirect: 'manual',
-  });
-
-  const setCookies = res.headers.getSetCookie?.() ?? [];
-  if (!setCookies.length) throw new Error(`Login failed for ${slug} — no cookies returned`);
-  return setCookies.map((c) => c.split(';')[0]).join('; ');
-}
 
 async function loginKlubyGeneral(): Promise<string> {
   const email = process.env.KLUBY_EMAIL;
@@ -102,21 +71,36 @@ async function loginKlubyGeneral(): Promise<string> {
   return setCookies.map((c) => c.split(';')[0]).join('; ');
 }
 
-async function getSession(slug: string): Promise<string> {
-  const isPublic = PUBLIC_GRAFIK_SLUGS.has(slug);
-  const key = isPublic ? 'kluby:session:general' : `kluby:session:${slug}`;
+// All kluby-auth clubs (including Padlovnia, Mana) work with the general /logowanie session.
+// One shared session key prevents stampede when multiple clubs fetch in parallel.
+const GENERAL_SESSION_KEY = 'kluby:session:general';
+
+// In-process promise dedup: one login even when N clubs call getSession() simultaneously
+let pendingGeneralLogin: Promise<string> | null = null;
+
+async function getSession(): Promise<string> {
+  // Check Redis first (fast path)
   try {
     const redis = await getRedis();
-    const cached = await redis.get(key);
+    const cached = await redis.get(GENERAL_SESSION_KEY);
     if (cached) return cached;
+  } catch (_) { /* Redis unavailable — fall through to login */ }
 
-    const cookies = isPublic ? await loginKlubyGeneral() : await loginKlubyDedicated(slug);
-    await redis.set(key, cookies, { EX: 23 * 60 * 60 }); // 23h TTL
+  // Deduplicate concurrent calls
+  if (pendingGeneralLogin) return pendingGeneralLogin;
+
+  pendingGeneralLogin = (async () => {
+    const cookies = await loginKlubyGeneral();
+    try {
+      const redis = await getRedis();
+      await redis.set(GENERAL_SESSION_KEY, cookies, { EX: 23 * 60 * 60 }); // 23h TTL
+    } catch (e) {
+      console.error('Redis set session error:', e);
+    }
     return cookies;
-  } catch (e) {
-    console.error('Redis getSession error:', e);
-    return isPublic ? loginKlubyGeneral() : loginKlubyDedicated(slug);
-  }
+  })().finally(() => { pendingGeneralLogin = null; });
+
+  return pendingGeneralLogin;
 }
 
 async function fetchHtml(url: string, cookies?: string): Promise<string> {
@@ -308,11 +292,8 @@ export async function fetchKlubySlots(
   });
 }
 
-function isSessionExpired(html: string, slug: string): boolean {
-  if (PUBLIC_GRAFIK_SLUGS.has(slug)) {
-    return html.includes(`/logowanie?page=/${slug}/`);
-  }
-  return html.includes('Musisz być zalogowany');
+function isSessionExpired(html: string): boolean {
+  return html.includes('Musisz być zalogowany') || html.includes('/logowanie?page=');
 }
 
 export async function fetchKlubyAuthSlots(
@@ -322,26 +303,23 @@ export async function fetchKlubyAuthSlots(
   date: string,
   defaultCourtType?: 'indoor' | 'outdoor',
 ): Promise<TimeSlot[]> {
-  const isPublic = PUBLIC_GRAFIK_SLUGS.has(slug);
-  const redisKey = isPublic ? 'kluby:session:general' : `kluby:session:${slug}`;
-
-  let cookies = await getSession(slug);
+  let cookies = await getSession();
   const url = getGrafikUrl(slug, date);
   let html = await fetchHtml(url, cookies);
 
   // If session expired, clear Redis and re-login once
-  if (isSessionExpired(html, slug)) {
+  if (isSessionExpired(html)) {
     try {
       const redis = await getRedis();
-      await redis.del(redisKey);
+      await redis.del(GENERAL_SESSION_KEY);
     } catch (e) {
       console.error('Redis del error:', e);
     }
-    cookies = isPublic ? await loginKlubyGeneral() : await loginKlubyDedicated(slug);
+    cookies = await loginKlubyGeneral();
     html = await fetchHtml(url, cookies);
   }
 
-  if (isSessionExpired(html, slug)) {
+  if (isSessionExpired(html)) {
     throw new Error(`Auth failed for ${slug}`);
   }
 
