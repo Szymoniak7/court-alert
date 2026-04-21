@@ -68,10 +68,26 @@ export const CLUBS: Club[] = [
   {
     id: 'rakiety-pge-narodowy',
     name: 'Rakiety PGE Narodowy',
-    shortName: 'Rakiety',
+    shortName: 'Rakiety PGE',
     source: 'playtomic',
     playtomicTenantId: '153bbff6-abf6-4ffe-ad93-ba1045e9d43b',
     playtomicSlug: 'rakiety-pge-narodowy',
     defaultCourtType: 'outdoor',
+  },
+  {
+    id: 'rakiety-aero',
+    name: 'Rakiety Aero',
+    source: 'playtomic',
+    playtomicTenantId: 'f3f86625-3c23-41fd-be77-526395fabe74',
+    playtomicSlug: 'rakiety---outdoor-padel',
+    defaultCourtType: 'outdoor',
+  },
+  {
+    id: 'propadel',
+    name: 'ProPadel Jutrzenki',
+    shortName: 'ProPadel',
+    source: 'kluby-auth',
+    klubySlug: 'propadel',
+    defaultCourtType: 'indoor',
   },
 ];

@@ -52,4 +52,16 @@ export const CLUB_COLORS: Record<string, {
     badge: 'bg-red-950 text-red-300 border-red-800',
     header: 'text-red-400',
   },
+  'rakiety-aero': {
+    dot: 'bg-red-300',
+    cell: 'bg-red-400/20 border-red-400/35 text-red-200 hover:bg-red-400/30',
+    badge: 'bg-red-900 text-red-200 border-red-700',
+    header: 'text-red-300',
+  },
+  'propadel': {
+    dot: 'bg-violet-400',
+    cell: 'bg-violet-500/20 border-violet-500/35 text-violet-200 hover:bg-violet-500/30',
+    badge: 'bg-violet-950 text-violet-300 border-violet-800',
+    header: 'text-violet-400',
+  },
 };
