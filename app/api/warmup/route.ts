@@ -1,21 +1,24 @@
 import { NextResponse } from 'next/server';
+import { CLUBS } from '@/lib/clubs';
+import { makeSemaphore, buildTasks } from '@/lib/fetchClubSlots';
 
 export const dynamic = 'force-dynamic';
 
-// Called by Vercel cron every 5 minutes to prevent cold starts.
-// Triggers a real availability fetch to warm up modules + Redis connection.
-export async function GET(req: Request) {
-  const host = req.headers.get('host') ?? 'localhost:3000';
-  const proto = host.startsWith('localhost') ? 'http' : 'https';
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' });
-
-  try {
-    await fetch(`${proto}://${host}/api/availability?dates=${today}&from=17&to=22`, {
-      cache: 'no-store',
+// Called by cron-job.org every 5 minutes.
+// Pre-populates the per-club-per-date Redis slot cache for today + tomorrow.
+export async function GET() {
+  const toDate = (offset: number) =>
+    new Date(Date.now() + offset * 86_400_000).toLocaleDateString('en-CA', {
+      timeZone: 'Europe/Warsaw',
     });
-  } catch (_) {
-    // ignore — warmup is best-effort
-  }
 
-  return NextResponse.json({ ok: true });
+  const dates = [toDate(0), toDate(1)];
+  const semaphore = makeSemaphore(8);
+  const tasks = buildTasks(dates, CLUBS, semaphore);
+
+  const results = await Promise.allSettled(tasks.map((t) => t.promise));
+  const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+  const failed = results.length - succeeded;
+
+  return NextResponse.json({ ok: true, dates, total: results.length, succeeded, failed });
 }

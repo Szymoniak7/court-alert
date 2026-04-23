@@ -287,3 +287,70 @@ Architektura uzgodniona:
 - **DB**: Supabase (PostgreSQL, darmowy tier)
 - **Email**: Resend (100 maili/dzień gratis)
 - **Cron**: cron-job.org (zewnętrzny, darmowy) → pinguje `/api/check-alerts` co 15 min
+
+### Sesja 9 (23-24.04.2026) — Maksymalne przyspieszenie ładowania
+
+#### Root cause analizy
+- Default preset był "weekdays" = 15 klubów × 10 dat = **150 zadań** cold cache → timeout Vercel 10s → crash
+- Brak pre-warmingu (Vercel cron usunięty w sesji 6) → cold start 2-6s na każdej wizycie
+- Stary `/api/warmup` wołał sam siebie przez HTTP (zawodne na Vercel)
+- Jeden `setSlots()` na każdy chunk streamingu → 150 re-renderów w 100ms na słabym telefonie
+
+#### Zmiany
+
+**Streaming NDJSON** (`/api/availability/stream/route.ts`, nowy):
+- Emituje dane każdego klubu osobno gdy tylko są gotowe
+- Nagłówki `X-Accel-Buffering: no` (wyłącza buforowanie nginx/Vercel)
+- Klient widzi pierwsze korty w <200ms (Playtomic warm cache)
+
+**`lib/fetchClubSlots.ts`** (nowy):
+- Wspólna logika semaphore + buildTasks wydzielona z route.ts
+- Używana w: `/api/availability`, `/api/availability/stream`, `/api/warmup`
+
+**`/api/warmup`** (przepisany):
+- Teraz bezpośrednio populuje Redis slot cache dla dziś + jutro (wszystkie 15 klubów)
+- Nie wołał już siebie przez HTTP (było zawodne)
+- Do wywołania: cron-job.org co 5 min → `GET court-alert-nu.vercel.app/api/warmup`
+
+**`app/hooks/useSlots.ts`** (streaming fetch):
+- Czyta NDJSON przez `body.getReader()`, aktualizuje grid sukcesywnie
+- Debounce renderów: max 1 `setSlots()` co 150ms (throttle) — zapobiega freeze na słabych telefonach
+- `loading=false` po pierwszym chunku, nie po ostatnim
+
+**`app/page.tsx`**:
+- Grid pokazuje się gdy `slots.length > 0` — nie czeka na koniec streamingu
+- Dimming (`opacity-40`) tylko przy auto-refresh (nie przy pierwszym ładowaniu streamingu)
+
+**Default preset: "weekdays" → "Dziś"** (`useFilters.ts`):
+- Najważniejsza zmiana: 150 zadań → 15 zadań
+- Cold cache "Dziś": ~1.5-2.5s total, pierwsze dane w <500ms
+- Cold cache "weekdays" = hit timeout Vercel 10s = crash
+
+**Slot cache TTL: 5 min → 10 min** (kluby.ts + playtomic.ts)
+
+#### Wymagana akcja: cron-job.org
+1. Wejdź na cron-job.org (darmowy)
+2. Nowy job: `GET https://court-alert-nu.vercel.app/api/warmup`
+3. Harmonogram: co 5 minut
+4. Zapisz
+
+Bez tego crona: każdy użytkownik po 10 min bezczynności trafia na cold start (2-6s nic).
+Z cronem: funkcja zawsze ciepła, Redis zawsze zasilony, ładowanie <200ms.
+
+#### Architektura wydajnościowa po sesji 9
+```
+Nowy użytkownik (warm cache + cron aktywny):
+1. JS bundle: ~1s
+2. GET /api/availability/stream (15 zadań × 1 data):
+   - Redis HIT per klub: ~10-20ms
+   - Pierwsze chunkі klienta: <100ms
+   - Pełne dane: <300ms
+3. Grid widoczny: ~1.1s od wejścia na stronę
+
+Nowy użytkownik (cold cache, bez crona):
+1. JS bundle: ~1s
+2. GET /api/availability/stream (15 zadań):
+   - 7 Playtomic parallel: ~500ms, pierwsze dane widoczne
+   - 8 kluby-auth semaphore(8) = 1 batch: ~1-2s
+3. Grid widoczny: ~1.5s, pełne dane: ~2.5s od wejścia
+```

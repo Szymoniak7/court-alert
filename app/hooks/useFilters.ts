@@ -8,9 +8,9 @@ const VALID_DAY_IDS = DAY_OPTIONS.map((d) => d.id);
 
 export function useFilters() {
   const [selectedDay, setSelectedDay] = useState(() => {
-    if (typeof window === 'undefined') return 'weekdays';
+    if (typeof window === 'undefined') return 'today';
     const saved = localStorage.getItem('ca_day');
-    return saved && VALID_DAY_IDS.includes(saved) ? saved : 'weekdays';
+    return saved && VALID_DAY_IDS.includes(saved) ? saved : 'today';
   });
 
   const [selectedTimes, setSelectedTimes] = useState<string[]>(() => {

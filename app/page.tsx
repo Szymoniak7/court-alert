@@ -18,7 +18,7 @@ export default function Home() {
 
   const slotsState = useSlots({ selectedDay, selectedClubs, fromHour, toHour });
   const {
-    slots, errors, loading, isRefreshing,
+    slots, errors, loading, isRefreshing, hasEverLoaded,
     lastUpdated, now,
     fetchSlots, resetSlots, setErrors,
     getEmptyMessage, slotLabel,
@@ -242,7 +242,7 @@ export default function Home() {
             </div>
 
             {/* Initial loading (no data yet) */}
-            {loading && (
+            {loading && slots.length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 gap-4">
                 <div className="relative flex flex-col items-center" style={{ height: 80 }}>
                   {/* Ball */}
@@ -264,7 +264,7 @@ export default function Home() {
             )}
 
             {/* Empty */}
-            {!loading && !isRefreshing && slots.length === 0 && (
+            {!loading && !isRefreshing && hasEverLoaded && slots.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center text-3xl mb-4">
                   🎾
@@ -275,15 +275,15 @@ export default function Home() {
             )}
 
             {/* Grid — desktop */}
-            {!loading && slots.length > 0 && (
-              <div className={`hidden lg:block transition-opacity duration-200 ${isRefreshing ? 'opacity-40' : 'opacity-100'}`}>
+            {slots.length > 0 && (
+              <div className={`hidden lg:block transition-opacity duration-200 ${isRefreshing && hasEverLoaded ? 'opacity-40' : 'opacity-100'}`}>
                 <CourtGrid slots={slots} clubs={CLUBS} selectedClubs={selectedClubs} />
               </div>
             )}
 
             {/* Grid — mobile */}
-            {!loading && slots.length > 0 && (
-              <div className={`lg:hidden transition-opacity duration-200 ${isRefreshing ? 'opacity-40' : 'opacity-100'}`}>
+            {slots.length > 0 && (
+              <div className={`lg:hidden transition-opacity duration-200 ${isRefreshing && hasEverLoaded ? 'opacity-40' : 'opacity-100'}`}>
                 <CourtGridMobile slots={slots} clubs={CLUBS} selectedClubs={selectedClubs} />
               </div>
             )}

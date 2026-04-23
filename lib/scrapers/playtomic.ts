@@ -2,7 +2,7 @@ import { createClient } from 'redis';
 import { TimeSlot } from '../types';
 
 const API_BASE = 'https://api.playtomic.io/v1';
-const SLOT_CACHE_TTL = 5 * 60; // 5 min
+const SLOT_CACHE_TTL = 10 * 60; // 10 min
 
 let redisClient: ReturnType<typeof createClient> | null = null;
 

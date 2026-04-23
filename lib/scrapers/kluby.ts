@@ -5,7 +5,7 @@ import { calculateKlubyPrice } from '../pricing';
 
 const KLUBY_BASE = 'https://kluby.org';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-const SLOT_CACHE_TTL = 5 * 60; // 5 min
+const SLOT_CACHE_TTL = 10 * 60; // 10 min
 
 let redisClient: ReturnType<typeof createClient> | null = null;
 

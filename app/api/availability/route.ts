@@ -1,29 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CLUBS } from '@/lib/clubs';
-import { fetchKlubySlots, fetchKlubyAuthSlots } from '@/lib/scrapers/kluby';
-import { fetchPlaytomicSlots } from '@/lib/scrapers/playtomic';
+import { makeSemaphore, buildTasks } from '@/lib/fetchClubSlots';
 import { TimeSlot } from '@/lib/types';
 import { createClient } from 'redis';
 
 export const dynamic = 'force-dynamic';
 
-// Limit concurrent requests to kluby.org to avoid rate limiting
-function makeSemaphore(limit: number) {
-  let active = 0;
-  const queue: (() => void)[] = [];
-  return async function<T>(fn: () => Promise<T>): Promise<T> {
-    if (active >= limit) {
-      await new Promise<void>((resolve) => queue.push(resolve));
-    }
-    active++;
-    try {
-      return await fn();
-    } finally {
-      active--;
-      queue.shift()?.();
-    }
-  };
-}
 const klubySemaphore = makeSemaphore(8);
 
 let redisClient: ReturnType<typeof createClient> | null = null;
@@ -97,17 +79,7 @@ export async function GET(req: NextRequest) {
   } catch (_) { /* Redis unavailable — skip cache */ }
 
   // Fetch all dates × all clubs in parallel
-  const tasks = dates.flatMap((date) =>
-    clubs.map((club) => ({
-      date,
-      club,
-      promise: club.source === 'kluby'
-        ? klubySemaphore(() => fetchKlubySlots(club.id, club.name, club.klubySlug!, date, club.defaultCourtType))
-        : club.source === 'kluby-auth'
-        ? klubySemaphore(() => fetchKlubyAuthSlots(club.id, club.name, club.klubySlug!, date, club.defaultCourtType))
-        : fetchPlaytomicSlots(club.id, club.name, club.playtomicTenantId!, date, club.playtomicSlug),
-    }))
-  );
+  const tasks = buildTasks(dates, clubs, klubySemaphore);
 
   const results = await Promise.allSettled(tasks.map((t) => t.promise));
 
