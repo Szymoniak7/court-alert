@@ -2,21 +2,25 @@
 
 import { useState } from 'react';
 import { CLUBS } from '@/lib/clubs';
-import { DAY_OPTIONS, TIME_OPTIONS } from '@/lib/presets';
-
-const VALID_DAY_IDS = DAY_OPTIONS.map((d) => d.id);
+import { DAY_PRESET_IDS, TIME_PRESETS } from '@/lib/presets';
 
 export function useFilters() {
-  const [selectedDay, setSelectedDay] = useState(() => {
+  // selectedDay: preset ID ('today','next3','weekend') or specific date ('YYYY-MM-DD')
+  const [selectedDay, setSelectedDay] = useState<string>(() => {
     if (typeof window === 'undefined') return 'today';
     const saved = localStorage.getItem('ca_day');
-    return saved && VALID_DAY_IDS.includes(saved) ? saved : 'today';
+    return saved && DAY_PRESET_IDS.includes(saved) ? saved : 'today';
   });
 
-  const [selectedTimes, setSelectedTimes] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return ['afterwork'];
-    const saved = localStorage.getItem('ca_times');
-    return saved ? JSON.parse(saved) : ['afterwork'];
+  // Time stored directly as hours — default: Po pracy 17–21
+  const [fromHour, setFromHour] = useState<number>(() => {
+    if (typeof window === 'undefined') return 17;
+    return parseInt(localStorage.getItem('ca_from') || '17');
+  });
+
+  const [toHour, setToHour] = useState<number>(() => {
+    if (typeof window === 'undefined') return 21;
+    return parseInt(localStorage.getItem('ca_to') || '21');
   });
 
   const [selectedClubs, setSelectedClubs] = useState<string[]>(() => {
@@ -25,24 +29,24 @@ export function useFilters() {
     return saved ? JSON.parse(saved) : CLUBS.map((c) => c.id);
   });
 
-  const activeTimes = TIME_OPTIONS.filter((t) => selectedTimes.includes(t.id));
-  const fromHour = activeTimes.length ? Math.min(...activeTimes.map((t) => t.fromHour)) : 0;
-  const toHour   = activeTimes.length ? Math.max(...activeTimes.map((t) => t.toHour))   : 24;
-
   const handleDayChange = (id: string) => {
     setSelectedDay(id);
-    localStorage.setItem('ca_day', id);
+    // Only persist semantic presets — specific dates go stale
+    if (DAY_PRESET_IDS.includes(id)) {
+      localStorage.setItem('ca_day', id);
+    }
   };
 
-  const toggleTime = (id: string) => {
-    setSelectedTimes((prev) => {
-      const next = prev.includes(id)
-        ? prev.length > 1 ? prev.filter((t) => t !== id) : prev
-        : [...prev, id];
-      localStorage.setItem('ca_times', JSON.stringify(next));
-      return next;
-    });
+  const handleTimeChange = (from: number, to: number) => {
+    setFromHour(from);
+    setToHour(to);
+    localStorage.setItem('ca_from', String(from));
+    localStorage.setItem('ca_to', String(to));
   };
+
+  // Which TIME_PRESETS entry matches current from/to (for highlight)
+  const activeTimePreset =
+    TIME_PRESETS.find((p) => p.fromHour === fromHour && p.toHour === toHour)?.id ?? null;
 
   const toggleClub = (id: string) => {
     setSelectedClubs((prev) => {
@@ -63,12 +67,12 @@ export function useFilters() {
 
   return {
     selectedDay,
-    selectedTimes,
-    selectedClubs,
     fromHour,
     toHour,
+    activeTimePreset,
+    selectedClubs,
     handleDayChange,
-    toggleTime,
+    handleTimeChange,
     toggleClub,
     toggleAllClubs,
   };

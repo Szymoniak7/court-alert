@@ -63,3 +63,11 @@ body {
 .animate-ball-shadow {
   animation: ball-shadow 700ms ease-in-out infinite;
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

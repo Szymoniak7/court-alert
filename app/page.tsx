@@ -1,19 +1,30 @@
 'use client';
 
 import { CLUBS } from '@/lib/clubs';
-import { DAY_OPTIONS, TIME_OPTIONS } from '@/lib/presets';
+import {
+  DAY_PRESETS, TIME_PRESETS,
+  getNextDays, formatShortDate, formatDate, getDayLabel, SHORT_DAYS,
+} from '@/lib/presets';
 import { CLUB_COLORS } from './components/colors';
 import CourtGrid from './components/CourtGrid';
 import CourtGridMobile from './components/CourtGridMobile';
 import { useFilters } from './hooks/useFilters';
 import { useSlots } from './hooks/useSlots';
 
+// Date chip style helper
+function dayChip(active: boolean) {
+  return `flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition border ${
+    active
+      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+      : 'bg-white/5 text-white/40 border-transparent hover:bg-white/8 hover:text-white/60'
+  }`;
+}
+
 export default function Home() {
   const filters = useFilters();
   const {
-    selectedDay, selectedTimes, selectedClubs,
-    fromHour, toHour,
-    toggleTime, toggleClub, toggleAllClubs,
+    selectedDay, fromHour, toHour, activeTimePreset, selectedClubs,
+    handleDayChange, handleTimeChange, toggleClub, toggleAllClubs,
   } = filters;
 
   const slotsState = useSlots({ selectedDay, selectedClubs, fromHour, toHour });
@@ -24,18 +35,13 @@ export default function Home() {
     getEmptyMessage, slotLabel,
   } = slotsState;
 
-  // Wrap day/time changes to also clear stale slot data
-  const handleDayChange = (id: string) => {
-    filters.handleDayChange(id);
-    resetSlots();
-  };
+  const onDayChange = (id: string) => { handleDayChange(id); resetSlots(); };
+  const onTimeChange = (from: number, to: number) => { handleTimeChange(from, to); resetSlots(); };
 
-  const handleToggleTime = (id: string) => {
-    toggleTime(id);
-    resetSlots();
-  };
+  const today = formatDate(new Date());
+  // Individual date chips: tomorrow + next 13 days (today = "Dziś" preset)
+  const upcomingDays = getNextDays(14).slice(1);
 
-  const dayOpt = DAY_OPTIONS.find((d) => d.id === selectedDay) ?? DAY_OPTIONS[0];
   const totalSlots = slots.length;
 
   return (
@@ -80,49 +86,81 @@ export default function Home() {
 
       <div className="flex flex-1 min-h-0">
 
-        {/* Sidebar — desktop */}
-        <aside className="hidden lg:flex flex-col w-56 border-r border-white/5 px-3 py-5 flex-shrink-0 gap-6 bg-[#080810]">
+        {/* ── Sidebar desktop ── */}
+        <aside className="hidden lg:flex flex-col w-56 border-r border-white/5 px-3 py-5 flex-shrink-0 gap-5 bg-[#080810] overflow-y-auto">
 
-          {/* Kiedy gram */}
+          {/* Kiedy gram? */}
           <div>
             <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 px-2">Kiedy gram?</p>
-            <div className="space-y-0.5">
-              {DAY_OPTIONS.map((opt) => (
+
+            {/* Quick semantic presets */}
+            <div className="flex gap-1 mb-2">
+              {DAY_PRESETS.map((p) => (
                 <button
-                  key={opt.id}
-                  onClick={() => handleDayChange(opt.id)}
-                  className={`w-full text-left px-3 py-2 rounded-xl transition border ${
-                    selectedDay === opt.id
+                  key={p.id}
+                  onClick={() => onDayChange(p.id)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border text-center ${
+                    selectedDay === p.id
                       ? 'bg-indigo-500/15 border-indigo-500/20 text-indigo-300'
-                      : 'border-transparent text-white/50 hover:bg-white/5 hover:text-white/70'
+                      : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white/60'
                   }`}
                 >
-                  <span className="text-sm font-medium">{opt.label}</span>
+                  {p.label}
                 </button>
               ))}
             </div>
+
+            {/* Specific upcoming dates */}
+            <div className="space-y-0.5 max-h-52 overflow-y-auto scrollbar-hide">
+              {upcomingDays.map((date) => (
+                <button
+                  key={date}
+                  onClick={() => onDayChange(date)}
+                  className={`w-full text-left px-3 py-1.5 rounded-xl transition border ${
+                    selectedDay === date
+                      ? 'bg-indigo-500/15 border-indigo-500/20 text-indigo-300'
+                      : 'border-transparent text-white/40 hover:bg-white/5 hover:text-white/60'
+                  }`}
+                >
+                  <span className="text-xs font-medium">{formatShortDate(date)}</span>
+                </button>
+              ))}
+              {/* Calendar picker for far-future dates */}
+              <div className="relative">
+                <input
+                  type="date"
+                  min={today}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  onChange={(e) => { if (e.target.value) onDayChange(e.target.value); }}
+                />
+                <div className="px-3 py-1.5 text-xs text-white/25 hover:text-white/50 transition cursor-pointer">
+                  📅 Wybierz datę...
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* O której */}
+          {/* O której? */}
           <div>
             <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 px-2">O której?</p>
             <div className="space-y-0.5">
-              {TIME_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => handleToggleTime(opt.id)}
-                  className={`w-full text-left px-3 py-2 rounded-xl transition border ${
-                    selectedTimes.includes(opt.id)
-                      ? 'bg-indigo-500/15 border-indigo-500/20'
-                      : 'border-transparent hover:bg-white/5'
-                  }`}
-                >
-                  <span className={`block text-sm font-medium ${selectedTimes.includes(opt.id) ? 'text-indigo-300' : 'text-white/50'}`}>
-                    {opt.label}
-                  </span>
-                  <span className="block text-[11px] text-white/25 mt-0.5">{opt.sublabel}</span>
-                </button>
-              ))}
+              {TIME_PRESETS.map((opt) => {
+                const active = activeTimePreset === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => onTimeChange(opt.fromHour, opt.toHour)}
+                    className={`w-full text-left px-3 py-2 rounded-xl transition border ${
+                      active ? 'bg-indigo-500/15 border-indigo-500/20' : 'border-transparent hover:bg-white/5'
+                    }`}
+                  >
+                    <span className={`block text-sm font-medium ${active ? 'text-indigo-300' : 'text-white/50'}`}>
+                      {opt.label}
+                    </span>
+                    <span className="block text-[11px] text-white/25 mt-0.5">{opt.sublabel}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -130,10 +168,7 @@ export default function Home() {
           <div>
             <div className="flex items-center justify-between mb-2 px-2">
               <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">Kluby</p>
-              <button
-                onClick={toggleAllClubs}
-                className="text-[10px] text-white/25 hover:text-white/50 transition"
-              >
+              <button onClick={toggleAllClubs} className="text-[10px] text-white/25 hover:text-white/50 transition">
                 {selectedClubs.length === CLUBS.length ? 'Odznacz wszystko' : 'Zaznacz wszystko'}
               </button>
             </div>
@@ -158,50 +193,75 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* Main */}
+        {/* ── Main ── */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-          {/* Mobile — Kiedy gram */}
-          <div className="lg:hidden border-b border-white/5 px-4 py-2">
-            <div className="flex gap-1.5 flex-wrap">
-              {DAY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => handleDayChange(opt.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition border ${
-                    selectedDay === opt.id
-                      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-                      : 'bg-white/5 text-white/40 border-transparent'
-                  }`}
-                >
-                  {opt.label}
+          {/* Mobile — date strip (horizontal scroll) */}
+          <div className="lg:hidden border-b border-white/5 px-3 py-2">
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+              {/* Quick semantic presets */}
+              {DAY_PRESETS.map((p) => (
+                <button key={p.id} onClick={() => onDayChange(p.id)} className={dayChip(selectedDay === p.id)}>
+                  {p.label}
                 </button>
               ))}
+
+              {/* Divider */}
+              <div className="flex-shrink-0 w-px bg-white/8 mx-0.5 self-stretch" />
+
+              {/* Individual upcoming days */}
+              {upcomingDays.map((date) => {
+                const d = new Date(date + 'T12:00:00');
+                return (
+                  <button
+                    key={date}
+                    onClick={() => onDayChange(date)}
+                    className={`${dayChip(selectedDay === date)} flex-col items-center leading-none gap-0.5`}
+                  >
+                    <span className="text-[10px] opacity-60">{SHORT_DAYS[d.getDay()]}</span>
+                    <span>{d.getDate()}</span>
+                  </button>
+                );
+              })}
+
+              {/* Calendar picker */}
+              <div className="relative flex-shrink-0">
+                <input
+                  type="date"
+                  min={today}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  onChange={(e) => { if (e.target.value) onDayChange(e.target.value); }}
+                />
+                <div className={dayChip(false)}>📅</div>
+              </div>
             </div>
           </div>
 
-          {/* Mobile — O której */}
-          <div className="lg:hidden border-b border-white/5 px-4 py-2">
+          {/* Mobile — time presets */}
+          <div className="lg:hidden border-b border-white/5 px-3 py-2">
             <div className="flex gap-1.5">
-              {TIME_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => handleToggleTime(opt.id)}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
-                    selectedTimes.includes(opt.id)
-                      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-                      : 'bg-white/5 text-white/40 border-transparent'
-                  }`}
-                >
-                  <span className="block">{opt.label}</span>
-                  <span className="block text-[10px] opacity-60 mt-0.5">{opt.sublabel}</span>
-                </button>
-              ))}
+              {TIME_PRESETS.map((opt) => {
+                const active = activeTimePreset === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => onTimeChange(opt.fromHour, opt.toHour)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
+                      active
+                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                        : 'bg-white/5 text-white/40 border-transparent'
+                    }`}
+                  >
+                    <span className="block">{opt.label}</span>
+                    <span className="block text-[10px] opacity-60 mt-0.5">{opt.sublabel}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Mobile — Kluby */}
-          <div className="lg:hidden border-b border-white/5 px-4 py-2">
+          {/* Mobile — club chips */}
+          <div className="lg:hidden border-b border-white/5 px-3 py-2">
             <div className="flex flex-wrap gap-1.5">
               {CLUBS.map((club) => {
                 const active = selectedClubs.includes(club.id);
@@ -233,7 +293,7 @@ export default function Home() {
 
             {/* Status */}
             <div className="flex items-center gap-2 mb-6">
-              <h2 className="text-sm font-semibold text-white/80">{dayOpt.label}</h2>
+              <h2 className="text-sm font-semibold text-white/80">{getDayLabel(selectedDay)}</h2>
               <span className="text-xs text-white/25">·</span>
               <span className="text-xs text-white/25">{fromHour}:00 – {toHour === 24 ? '24:00' : `${toHour}:00`}</span>
               {!loading && totalSlots > 0 && (
@@ -241,11 +301,10 @@ export default function Home() {
               )}
             </div>
 
-            {/* Initial loading (no data yet) */}
+            {/* Initial loading */}
             {loading && slots.length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 gap-4">
                 <div className="relative flex flex-col items-center" style={{ height: 80 }}>
-                  {/* Ball */}
                   <div
                     className="animate-ball w-9 h-9 rounded-full"
                     style={{
@@ -253,7 +312,6 @@ export default function Home() {
                       boxShadow: '0 2px 8px rgba(122,184,0,0.4)',
                     }}
                   />
-                  {/* Shadow */}
                   <div
                     className="animate-ball-shadow mt-1 rounded-full"
                     style={{ width: 28, height: 6, background: 'rgba(255,255,255,0.1)' }}
