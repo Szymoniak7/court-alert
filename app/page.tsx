@@ -2,23 +2,14 @@
 
 import { CLUBS } from '@/lib/clubs';
 import {
-  DAY_PRESETS, TIME_PRESETS,
-  getNextDays, formatShortDate, formatDate, getDayLabel, SHORT_DAYS,
+  TIME_PRESETS,
+  getNextDays, formatDate, getDayLabel, SHORT_DAYS,
 } from '@/lib/presets';
 import { CLUB_COLORS } from './components/colors';
 import CourtGrid from './components/CourtGrid';
 import CourtGridMobile from './components/CourtGridMobile';
 import { useFilters } from './hooks/useFilters';
 import { useSlots } from './hooks/useSlots';
-
-// Date chip style helper
-function dayChip(active: boolean) {
-  return `flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition border ${
-    active
-      ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-      : 'bg-white/5 text-white/40 border-transparent hover:bg-white/8 hover:text-white/60'
-  }`;
-}
 
 export default function Home() {
   const filters = useFilters();
@@ -39,8 +30,11 @@ export default function Home() {
   const onTimeChange = (from: number, to: number) => { handleTimeChange(from, to); resetSlots(); };
 
   const today = formatDate(new Date());
-  // Individual date chips: tomorrow + next 13 days (today = "Dziś" preset)
+  // tomorrow + next 12 days as specific dates
   const upcomingDays = getNextDays(14).slice(1);
+  const tomorrow = upcomingDays[0];
+  // days after tomorrow for the scrollable chips
+  const laterDays = upcomingDays.slice(1);
 
   const totalSlots = slots.length;
 
@@ -86,23 +80,27 @@ export default function Home() {
 
       <div className="flex flex-1 min-h-0">
 
-        {/* ── Sidebar desktop ── */}
+        {/* ── Desktop sidebar ── */}
         <aside className="hidden lg:flex flex-col w-56 border-r border-white/5 px-3 py-5 flex-shrink-0 gap-5 bg-[#080810] overflow-y-auto">
 
           {/* Kiedy gram? */}
           <div>
-            <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2 px-2">Kiedy gram?</p>
+            <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-3 px-2">Kiedy gram?</p>
 
-            {/* Quick semantic presets */}
+            {/* Dziś + Jutro + Weekend */}
             <div className="flex gap-1 mb-2">
-              {DAY_PRESETS.map((p) => (
+              {[
+                { id: 'today',   label: 'Dziś' },
+                { id: tomorrow,  label: 'Jutro' },
+                { id: 'weekend', label: 'Weekend' },
+              ].map((p) => (
                 <button
                   key={p.id}
                   onClick={() => onDayChange(p.id)}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border text-center ${
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition text-center ${
                     selectedDay === p.id
-                      ? 'bg-indigo-500/15 border-indigo-500/20 text-indigo-300'
-                      : 'border-white/5 text-white/40 hover:bg-white/5 hover:text-white/60'
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-white/5 text-white/40 hover:bg-white/8 hover:text-white/70'
                   }`}
                 >
                   {p.label}
@@ -110,22 +108,28 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Specific upcoming dates */}
+            {/* Upcoming dates list */}
             <div className="space-y-0.5 max-h-52 overflow-y-auto scrollbar-hide">
-              {upcomingDays.map((date) => (
-                <button
-                  key={date}
-                  onClick={() => onDayChange(date)}
-                  className={`w-full text-left px-3 py-1.5 rounded-xl transition border ${
-                    selectedDay === date
-                      ? 'bg-indigo-500/15 border-indigo-500/20 text-indigo-300'
-                      : 'border-transparent text-white/40 hover:bg-white/5 hover:text-white/60'
-                  }`}
-                >
-                  <span className="text-xs font-medium">{formatShortDate(date)}</span>
-                </button>
-              ))}
-              {/* Calendar picker for far-future dates */}
+              {laterDays.map((date) => {
+                const d = new Date(date + 'T12:00:00');
+                const active = selectedDay === date;
+                return (
+                  <button
+                    key={date}
+                    onClick={() => onDayChange(date)}
+                    className={`w-full text-left px-3 py-2 rounded-xl transition flex items-center gap-2 ${
+                      active
+                        ? 'bg-indigo-500/15 text-indigo-300'
+                        : 'text-white/40 hover:bg-white/5 hover:text-white/70'
+                    }`}
+                  >
+                    <span className={`text-[10px] w-6 ${active ? 'text-indigo-400' : 'text-white/25'}`}>
+                      {SHORT_DAYS[d.getDay()]}
+                    </span>
+                    <span className="text-sm font-medium">{d.getDate()}.{String(d.getMonth() + 1).padStart(2, '0')}</span>
+                  </button>
+                );
+              })}
               <div className="relative">
                 <input
                   type="date"
@@ -133,7 +137,7 @@ export default function Home() {
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   onChange={(e) => { if (e.target.value) onDayChange(e.target.value); }}
                 />
-                <div className="px-3 py-1.5 text-xs text-white/25 hover:text-white/50 transition cursor-pointer">
+                <div className="px-3 py-2 text-xs text-white/25 hover:text-white/50 transition cursor-pointer">
                   📅 Wybierz datę...
                 </div>
               </div>
@@ -169,7 +173,7 @@ export default function Home() {
             <div className="flex items-center justify-between mb-2 px-2">
               <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">Kluby</p>
               <button onClick={toggleAllClubs} className="text-[10px] text-white/25 hover:text-white/50 transition">
-                {selectedClubs.length === CLUBS.length ? 'Odznacz wszystko' : 'Zaznacz wszystko'}
+                {selectedClubs.length === CLUBS.length ? 'Odznacz' : 'Zaznacz wszystko'}
               </button>
             </div>
             <div className="space-y-0.5">
@@ -193,33 +197,58 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* ── Main ── */}
+        {/* ── Mobile + Main ── */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-          {/* Mobile — date strip (horizontal scroll) */}
-          <div className="lg:hidden border-b border-white/5 px-3 py-2">
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
-              {/* Quick semantic presets */}
-              {DAY_PRESETS.map((p) => (
-                <button key={p.id} onClick={() => onDayChange(p.id)} className={dayChip(selectedDay === p.id)}>
-                  {p.label}
-                </button>
-              ))}
+          {/* Mobile — date strip (Booksy-style) */}
+          <div className="lg:hidden border-b border-white/5 px-3 py-2.5">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
 
-              {/* Divider */}
-              <div className="flex-shrink-0 w-px bg-white/8 mx-0.5 self-stretch" />
+              {/* Dziś */}
+              <button
+                onClick={() => onDayChange('today')}
+                className={`flex-shrink-0 flex items-center justify-center px-5 h-14 rounded-2xl text-sm font-semibold transition ${
+                  selectedDay === 'today'
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white/6 text-white/50 hover:bg-white/10'
+                }`}
+              >
+                Dziś
+              </button>
 
-              {/* Individual upcoming days */}
-              {upcomingDays.map((date) => {
+              {/* Jutro */}
+              <button
+                onClick={() => onDayChange(tomorrow)}
+                className={`flex-shrink-0 flex items-center justify-center px-5 h-14 rounded-2xl text-sm font-semibold transition ${
+                  selectedDay === tomorrow
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white/6 text-white/50 hover:bg-white/10'
+                }`}
+              >
+                Jutro
+              </button>
+
+              {/* Separator */}
+              <div className="flex-shrink-0 w-px bg-white/8 mx-0.5 my-2.5" />
+
+              {/* Specific upcoming dates */}
+              {laterDays.map((date) => {
                 const d = new Date(date + 'T12:00:00');
+                const active = selectedDay === date;
                 return (
                   <button
                     key={date}
                     onClick={() => onDayChange(date)}
-                    className={`${dayChip(selectedDay === date)} flex-col items-center leading-none gap-0.5`}
+                    className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition ${
+                      active
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-white/6 text-white/50 hover:bg-white/10'
+                    }`}
                   >
-                    <span className="text-[10px] opacity-60">{SHORT_DAYS[d.getDay()]}</span>
-                    <span>{d.getDate()}</span>
+                    <span className={`text-[11px] font-medium ${active ? 'text-white/75' : 'text-white/35'}`}>
+                      {SHORT_DAYS[d.getDay()]}
+                    </span>
+                    <span className="text-lg font-bold leading-tight">{d.getDate()}</span>
                   </button>
                 );
               })}
@@ -232,8 +261,11 @@ export default function Home() {
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   onChange={(e) => { if (e.target.value) onDayChange(e.target.value); }}
                 />
-                <div className={dayChip(false)}>📅</div>
+                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-white/6 text-white/30 hover:bg-white/10 transition text-xl">
+                  📅
+                </div>
               </div>
+
             </div>
           </div>
 
@@ -246,13 +278,13 @@ export default function Home() {
                   <button
                     key={opt.id}
                     onClick={() => onTimeChange(opt.fromHour, opt.toHour)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition border ${
+                    className={`flex-1 py-2 rounded-xl text-xs font-medium transition ${
                       active
-                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-                        : 'bg-white/5 text-white/40 border-transparent'
+                        ? 'bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-500/40'
+                        : 'bg-white/5 text-white/40 hover:bg-white/8'
                     }`}
                   >
-                    <span className="block">{opt.label}</span>
+                    <span className="block font-semibold">{opt.label}</span>
                     <span className="block text-[10px] opacity-60 mt-0.5">{opt.sublabel}</span>
                   </button>
                 );
@@ -260,7 +292,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Mobile — club chips */}
+          {/* Mobile — clubs */}
           <div className="lg:hidden border-b border-white/5 px-3 py-2">
             <div className="flex flex-wrap gap-1.5">
               {CLUBS.map((club) => {
