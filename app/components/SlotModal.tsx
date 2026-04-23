@@ -49,7 +49,10 @@ export default function SlotModal({ slots, onClose }: Props) {
         <div className="px-5 py-4 border-b border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className={`w-2.5 h-2.5 rounded-full ${color?.dot || 'bg-gray-400'}`} />
+              <span
+                className="w-[3px] h-5 rounded-full flex-shrink-0"
+                style={{ background: color?.hex ?? '#6b7280' }}
+              />
               <span className="font-semibold text-white">{first.clubName}</span>
             </div>
             <button

@@ -114,17 +114,20 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                             <button
                               key={club.id}
                               onClick={() => setModal(cellSlots)}
-                              className="w-full flex items-center px-3 py-2.5 rounded-xl border active:scale-[0.98] transition-transform"
+                              className="relative w-full flex items-center px-3 py-2.5 rounded-xl border overflow-hidden active:scale-[0.98] transition-transform"
                               style={{
                                 background: 'rgba(255,255,255,0.03)',
                                 borderColor: 'rgba(255,255,255,0.06)',
                               }}
                             >
-                              {/* Dot */}
-                              <span className={`w-2 h-2 rounded-full flex-shrink-0 mr-2.5 ${color?.dot}`} />
+                              {/* Left color bar */}
+                              <span
+                                className="absolute left-0 top-0 bottom-0 w-[3px]"
+                                style={{ background: color?.hex ?? 'transparent' }}
+                              />
 
                               {/* Nazwa — flex-1, obcina za długie */}
-                              <span className="text-sm font-medium text-gray-200 flex-1 min-w-0 truncate text-left">
+                              <span className="text-sm font-medium text-gray-200 flex-1 min-w-0 truncate text-left pl-1.5">
                                 {club.shortName ?? club.name.split(' ')[0]}
                               </span>
 

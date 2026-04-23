@@ -5,7 +5,6 @@ import {
   TIME_PRESETS,
   getNextDays, formatDate, getDayLabel, SHORT_DAYS,
 } from '@/lib/presets';
-import { CLUB_COLORS } from './components/colors';
 import CourtGrid from './components/CourtGrid';
 import CourtGridMobile from './components/CourtGridMobile';
 import { useFilters } from './hooks/useFilters';
@@ -179,16 +178,14 @@ export default function Home() {
             <div className="space-y-0.5">
               {CLUBS.map((club) => {
                 const active = selectedClubs.includes(club.id);
-                const color = CLUB_COLORS[club.id];
                 return (
                   <button
                     key={club.id}
                     onClick={() => toggleClub(club.id)}
-                    className={`w-full flex items-center gap-2.5 text-left px-3 py-2 rounded-xl transition border border-transparent ${
+                    className={`w-full flex items-center text-left px-3 py-2 rounded-xl transition border border-transparent ${
                       active ? '' : 'opacity-40'
                     } hover:bg-white/5`}
                   >
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${active ? color?.dot : 'bg-white/20'}`} />
                     <span className="text-xs text-white/70 truncate">{club.name}</span>
                   </button>
                 );
@@ -297,16 +294,14 @@ export default function Home() {
             <div className="flex flex-wrap gap-1.5">
               {CLUBS.map((club) => {
                 const active = selectedClubs.includes(club.id);
-                const color = CLUB_COLORS[club.id];
                 return (
                   <button
                     key={club.id}
                     onClick={() => toggleClub(club.id)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border transition ${
+                    className={`px-2.5 py-1 rounded-full text-xs border transition ${
                       active ? 'border-white/15 text-white/70' : 'border-white/5 text-white/20'
                     }`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${active ? color?.dot : 'bg-white/20'}`} />
                     {club.shortName ?? club.name.split(' ')[0]}
                   </button>
                 );

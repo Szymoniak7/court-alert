@@ -64,7 +64,6 @@ export default function CourtGrid({ slots, clubs, selectedClubs }: Props) {
                         return (
                           <th key={club.id} className="py-3 px-2 text-center min-w-[7rem] bg-[#080810]">
                             <div className="flex flex-col items-center gap-1">
-                              <span className={`w-2 h-2 rounded-full ${color?.dot}`} />
                               <span className={`text-xs font-medium leading-tight ${color?.header} whitespace-nowrap`}>
                                 {club.name.split(' ')[0]}
                               </span>
