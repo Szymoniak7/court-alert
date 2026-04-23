@@ -323,8 +323,8 @@ export default function Home() {
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4 lg:p-6">
 
-            {/* Status */}
-            <div className="flex items-center gap-2 mb-6">
+            {/* Status — desktop only; mobile has date+count in sticky section headers */}
+            <div className="hidden lg:flex items-center gap-2 mb-6">
               <h2 className="text-sm font-semibold text-white/80">{getDayLabel(selectedDay)}</h2>
               <span className="text-xs text-white/25">·</span>
               <span className="text-xs text-white/25">{fromHour}:00 – {toHour === 24 ? '24:00' : `${toHour}:00`}</span>

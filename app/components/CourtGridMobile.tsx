@@ -132,7 +132,7 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
 
                               {/* Czas — stała szerokość, wyśrodkowany */}
                               <span className="text-xs text-gray-500 w-10 text-center flex-shrink-0">
-                                {durationStr}{hasMultipleDurations && <span className="text-gray-700">+</span>}
+                                {hasMultipleDurations ? `od ${durationStr}` : durationStr}
                               </span>
 
                               {/* Cena — stała szerokość, do prawej */}

@@ -20,5 +20,10 @@ export function CourtTypeBadge({ type, className }: { type: 'indoor' | 'outdoor'
   if (type === 'outdoor') {
     return <span className={`${base} bg-amber-900/50 text-amber-300 ${className ?? ''}`}>Outdoor</span>;
   }
-  return <span className={`${base} bg-green-900/50 text-green-300 ${className ?? ''}`}>Indoor+Outdoor</span>;
+  return (
+    <span className={`flex items-center gap-0.5 ${className ?? ''}`}>
+      <span className={`${base} bg-blue-900/50 text-blue-300`}>In</span>
+      <span className={`${base} bg-amber-900/50 text-amber-300`}>Out</span>
+    </span>
+  );
 }
