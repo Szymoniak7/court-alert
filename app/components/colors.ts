@@ -157,6 +157,20 @@ export const CLUB_COLORS: Record<string, {
     header: 'text-sky-300',
   },
 
+  // ── Wrocław ───────────────────────────────────────────────────────────────
+  'padel-pl-wroclaw': {
+    hex: '#4ade80',
+    cell: 'bg-green-500/20 border-green-500/35 text-green-200 hover:bg-green-500/30',
+    badge: 'bg-green-950 text-green-300 border-green-800',
+    header: 'text-green-400',
+  },
+  'fiesta-padel': {
+    hex: '#f97316',
+    cell: 'bg-orange-500/20 border-orange-500/35 text-orange-200 hover:bg-orange-500/30',
+    badge: 'bg-orange-950 text-orange-300 border-orange-800',
+    header: 'text-orange-400',
+  },
+
   // ── Opole ─────────────────────────────────────────────────────────────────
   'pop-yard': {
     hex: '#93c5fd',

@@ -233,6 +233,25 @@ export const CLUBS: Club[] = [
     klubySlug: 'sport-park',
   },
 
+  // ── Wrocław ───────────────────────────────────────────────────────────────
+  {
+    id: 'padel-pl-wroclaw',
+    name: 'Padel PL Wrocław',
+    shortName: 'Padel PL',
+    city: 'Wrocław',
+    source: 'playtomic',
+    playtomicTenantId: '280bfe06-18e4-464f-a1f3-edc0bee96e35',
+    playtomicSlug: 'padel-pl-wroclaw',
+  },
+  {
+    id: 'fiesta-padel',
+    name: 'Fiesta Padel',
+    city: 'Wrocław',
+    source: 'playtomic',
+    playtomicTenantId: 'cf58118a-353b-4ec1-a51e-ea52acc99063',
+    playtomicSlug: 'fiesta-padel',
+  },
+
   // ── Opole ─────────────────────────────────────────────────────────────────
   {
     id: 'pop-yard',

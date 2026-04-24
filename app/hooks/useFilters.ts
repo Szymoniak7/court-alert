@@ -7,6 +7,7 @@ import { DAY_PRESET_IDS, TIME_PRESETS } from '@/lib/presets';
 // Preferred display order — new cities appended automatically at the end
 const CITY_ORDER = [
   'Warszawa',
+  'Wrocław',
   'Katowice', 'Gliwice', 'Chorzów', 'Bytom', 'Zabrze', 'Tychy', 'Dąbrowa Górnicza', 'Pszczyna',
   'Opole',
 ];
@@ -14,6 +15,7 @@ const CITY_ORDER = [
 // City center coords for geolocation detection [lat, lng]
 const CITY_COORDS: Record<string, [number, number]> = {
   'Warszawa':          [52.23, 21.01],
+  'Wrocław':           [51.11, 17.04],
   'Katowice':          [50.26, 19.02],
   'Gliwice':           [50.29, 18.67],
   'Chorzów':           [50.30, 18.95],
