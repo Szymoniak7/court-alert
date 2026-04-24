@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { CLUBS } from '@/lib/clubs';
 import {
   TIME_PRESETS,
@@ -13,9 +14,24 @@ import { useSlots } from './hooks/useSlots';
 export default function Home() {
   const filters = useFilters();
   const {
+    selectedCity, setCity, cities, clubsForCity,
     selectedDay, fromHour, toHour, activeTimePreset, selectedClubs,
     handleDayChange, handleTimeChange, toggleClub, toggleAllClubs,
   } = filters;
+
+  const [cityOpen, setCityOpen] = useState(false);
+  const cityRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!cityOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (cityRef.current && !cityRef.current.contains(e.target as Node)) {
+        setCityOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [cityOpen]);
 
   const slotsState = useSlots({ selectedDay, selectedClubs, fromHour, toHour });
   const {
@@ -56,7 +72,32 @@ export default function Home() {
             <div className="w-6 h-6 rounded-lg bg-indigo-500 flex items-center justify-center text-xs font-bold">C</div>
             <span className="font-semibold tracking-tight">Court Alert</span>
           </div>
-          <span className="hidden sm:inline text-xs text-white/20 font-normal">Warszawa · padel</span>
+          {/* City selector */}
+          <div ref={cityRef} className="relative">
+            <button
+              onClick={() => setCityOpen((v) => !v)}
+              className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/8 text-white/50 hover:text-white/80 transition"
+            >
+              <span>{selectedCity}</span>
+              <span className={`text-white/30 transition-transform duration-150 ${cityOpen ? 'rotate-180' : ''}`}>▾</span>
+            </button>
+            {cityOpen && (
+              <div className="absolute top-full mt-1.5 left-0 bg-[#12121e] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50 min-w-[180px]">
+                {cities.map((city) => (
+                  <button
+                    key={city}
+                    onClick={() => { setCity(city); setCityOpen(false); resetSlots(); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition flex items-center justify-between hover:bg-white/5 ${
+                      selectedCity === city ? 'text-indigo-400' : 'text-white/55'
+                    }`}
+                  >
+                    <span>{city}</span>
+                    {selectedCity === city && <span className="text-indigo-400 text-xs">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {lastUpdated && !isRefreshing && (
@@ -172,11 +213,11 @@ export default function Home() {
             <div className="flex items-center justify-between mb-2 px-2">
               <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">Kluby</p>
               <button onClick={toggleAllClubs} className="text-[10px] text-white/25 hover:text-white/50 transition">
-                {selectedClubs.length === CLUBS.length ? 'Odznacz' : 'Zaznacz wszystko'}
+                {selectedClubs.length === clubsForCity.length ? 'Odznacz' : 'Zaznacz wszystko'}
               </button>
             </div>
             <div className="space-y-0.5">
-              {CLUBS.map((club) => {
+              {clubsForCity.map((club) => {
                 const active = selectedClubs.includes(club.id);
                 return (
                   <button
@@ -292,7 +333,7 @@ export default function Home() {
           {/* Mobile — clubs */}
           <div className="lg:hidden border-b border-white/5 px-3 py-2">
             <div className="flex flex-wrap gap-1.5">
-              {CLUBS.map((club) => {
+              {clubsForCity.map((club) => {
                 const active = selectedClubs.includes(club.id);
                 return (
                   <button
@@ -310,7 +351,7 @@ export default function Home() {
                 onClick={toggleAllClubs}
                 className="flex items-center px-2.5 py-1 rounded-full text-xs border border-white/5 text-white/25 hover:text-white/50 transition"
               >
-                {selectedClubs.length === CLUBS.length ? 'Odznacz' : 'Wszystkie'}
+                {selectedClubs.length === clubsForCity.length ? 'Odznacz' : 'Wszystkie'}
               </button>
             </div>
           </div>
