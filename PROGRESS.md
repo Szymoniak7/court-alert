@@ -354,3 +354,164 @@ Nowy użytkownik (cold cache, bez crona):
    - 8 kluby-auth semaphore(8) = 1 batch: ~1-2s
 3. Grid widoczny: ~1.5s, pełne dane: ~2.5s od wejścia
 ```
+
+### Sesja 10 (24.04.2026) — UX mobile + redesign identyfikacji klubów
+
+#### UX mobile — drobne poprawki
+- **`1h+` → `od 1h`** — spójność z `od X PLN`; "od" oznacza "minimum, są dłuższe opcje"
+- **`[Indoor+Outdoor]` → `[In][Out]`** — dwie osobne pigułki zamiast jednej szerokiej; niebieski/pomarańczowy, mniejsza szerokość, czytelniej
+- **Status bar ukryty na mobile** (`hidden lg:flex`) — data i liczba slotów są już w sticky headerach sekcji `CourtGridMobile`; na desktopie status bar zostaje bez zmian
+- `target="_blank"` na linku "Rezerwuj →" — był już obecny w `SlotModal.tsx`
+
+#### Czcionka — Space Grotesk
+- Zastąpiono Arial (nigdy nieaplikowany — body miał `font-family: Arial` mimo załadowanego Geist) przez **Space Grotesk**
+- Załadowany przez `next/font/google` z wagami 300–700
+- `Geist_Mono` zostaje dla czasów i liczb (tabular-nums)
+- Decyzja: Space Grotesk jako font premium dla dark-mode utility app — charakterystyczne kroje, mocno wygląda bold, używany przez Railway / Resend
+
+#### Redesign identyfikacji klubów — kolorowe kropki → lewy bar
+
+**Decyzja designerska:**
+Użytkownik identyfikuje kluby po **nazwie**, nie po kolorze. Kolorowe kropki były:
+- Arbitralne (dlaczego Loba zielona, RQT żółty — brak semantyki)
+- Za małe (8px na ciemnym tle = niewidoczne)
+- Dekoracyjne a nie strukturalne — "naklejka" obok nazwy
+
+**Rozwiązanie: 3px kolorowy bar po lewej krawędzi karty**
+- `position: absolute; left: 0; top: 0; bottom: 0; width: 3px` wewnątrz `overflow-hidden` — border-radius karty przycina bar czysto w narożnikach
+- Kolor jako element struktury karty (jak Linear, VS Code tabs), nie ozdobnik
+- Oko skanuje lewą krawędź listy przy scrollowaniu — bar jest tam gdzie wzrok naturalnie pada
+- Przy wielu klubach w tym samym slocie: szybka identyfikacja kolorystyczna bez zaśmiecania rzędu
+
+**Zmiany w kodzie:**
+- `colors.ts` — usunięto `dot: string`, dodano `hex: string` z rzeczywistymi wartościami CSS (np. `#34d399` dla emerald-400)
+- `CourtGridMobile.tsx` — usunięto `<span className={dot}>`, dodano `<span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: color.hex }} />`
+- `CourtGrid.tsx` — usunięto kropkę z nagłówka tabeli (zostaje kolorowy tekst nazwy klubu przez `color.header`)
+- `SlotModal.tsx` — usunięto kropkę z headera modala, zastąpiona 3px × 20px pionową kreską w kolorze klubu
+- `page.tsx` — usunięto kropki z chipów filtrów (mobile) i listy klubów (desktop sidebar); usunięto import `CLUB_COLORS` (już nieużywany w page.tsx)
+
+### Sesja 11 (25.04.2026) — Plan systemu alertów
+
+#### Decyzje produktowe
+- Kanały powiadomień: **Push (PWA) + SMS (Twilio)** jako MVP, **WhatsApp** docelowo
+- Email odpada jako kanał powiadomień — zostaje tylko w potwierdzeniu zapisu
+- WhatsApp: ten sam numer co SMS, inny provider (Meta Cloud API) — wymaga weryfikacji biznesowej Meta (kilka dni/tygodni)
+- 1 alert = 1 powiadomienie → auto-wygaśnięcie po odpaleniu
+- Limit: 3 aktywne alerty per numer telefonu
+- TTL: auto-wygaśnięcie po 7 dniach jeśli nie odpalony
+- Weryfikacja numeru: brak na MVP (rate limit po IP), Twilio Verify OTP później
+
+#### Schemat DB (Supabase)
+
+```sql
+CREATE TABLE push_subscriptions (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  endpoint   text NOT NULL UNIQUE,
+  p256dh     text NOT NULL,
+  auth       text NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE alerts (
+  id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone                text,
+  push_subscription_id uuid REFERENCES push_subscriptions,
+  clubs                text[] NOT NULL,
+  date                 date NOT NULL,
+  time_from            smallint NOT NULL,   -- minuty od północy, np. 1080 = 18:00
+  time_to              smallint NOT NULL,
+  min_duration         smallint DEFAULT 60,
+  created_at           timestamptz DEFAULT now(),
+  fired_at             timestamptz,
+  expires_at           timestamptz DEFAULT now() + interval '7 days'
+);
+
+CREATE INDEX ON alerts (fired_at, expires_at);
+```
+
+#### Fazy implementacji
+
+**Faza 1 — SMS (2-3h)**
+- Konto Twilio + env vars: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`
+- Tabela `alerts` w Supabase + env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+- `POST /api/alerts` — zapis do DB + SMS potwierdzający
+- `GET /api/check-alerts?secret=...` — scan pending alertów → match slotów → SMS przez Twilio
+- UI: modal "dzwonek" w headerze → pole numer + wybór klubu/daty/czasu
+
+**Faza 2 — Push PWA (3-4h)**
+- `public/manifest.json` + `public/sw.js` (service worker)
+- VAPID keys: `npx web-push generate-vapid-keys` → env vars
+- Tabela `push_subscriptions` w Supabase
+- `POST /api/push-subscribe` — zapis subskrypcji urządzenia
+- `check-alerts`: wysyłka push przez `web-push` library równolegle z SMS
+- UI: przycisk "Włącz powiadomienia" (zero friction, bez podawania numeru)
+
+**Faza 3 — WhatsApp (gdy Meta zatwierdzi)**
+- Meta Business Account + weryfikacja (rozpocząć jak najwcześniej — trwa)
+- Ten sam numer w DB, nowy sending path przez Meta Cloud API
+- Feature flag per alert: `channel: 'sms' | 'whatsapp'`
+
+#### UX flow alertu
+```
+[dzwonek w headerze]
+→ Modal: "Powiadom mnie gdy zwolni się kort"
+→ [Push] zero friction  LUB  [SMS] pole "+48 XXX XXX XXX"
+→ Wybór: klub(i) | data | godziny | min. czas trwania
+→ [Ustaw alert]
+→ Push: przeglądarka pyta o zgodę → subskrypcja zapisana
+→ SMS: potwierdzenie "Alert ustawiony. Powiadomimy gdy zwolni się kort."
+```
+
+#### Następny krok
+Zacząć od Fazy 1 (SMS) — najprostsze, natychmiastowa wartość. Push (Faza 2) dorzucić jako drugi kanał.
+
+---
+
+## Strategia biznesowa (25.04.2026)
+
+### Pozycja na rynku
+
+- padelnow.org (główny konkurent) też tylko przekierowuje do kluby.org — nie ma głębszych integracji. Court Alert jest na tym samym poziomie technicznie.
+- Jedyna realna przewaga dziś: **alerty** — jeśli padelnow ich nie ma, to jedyna unikalna funkcja
+- Playtomic to potencjalne ryzyko długoterminowe (ekspansja w Polsce), ale też stabilne API jeśli zdominuje rynek
+- Court Alert ma przewagę kosztową vs Playtomic: koszt infrastruktury ~$50-100/mies. → można oferować klubom niższe prowizje i nadal zarabiać
+
+### Modele przychodów — priorytet
+
+| # | Model | Kiedy | Potencjał |
+|---|-------|-------|-----------|
+| 1 | **Sponsorowane alerty** | Od razu po uruchomieniu alertów | Skaluje z liczbą alertów |
+| 2 | **Afiliacja** (Head, Babolat, sklepy) | Od razu — rejestracja w programach afiliacyjnych | Pasywny, rośnie z traffikiem |
+| 3 | **Last-minute deals** | Po alertach | Clubs mają ból, proste do pitch |
+| 4 | **"Szukam partnera"** | Równolegle z alertami | Największy driver retencji |
+| 5 | **B2C freemium** (alerty płatne) | Gdy masz bazę userów | 10-20 PLN/mies., 2-5% konwersja |
+| 6 | **Corporate benefit** | 6-12 mies. | Inny buyer (HR), duże budgety |
+| 7 | **Dashboard analityczny dla klubów** | Po pierwszych direct integracjach | 200-500 PLN/mies./klub, B2B SaaS |
+| 8 | **Dane/raport inwestycyjny** | Gdy masz 3+ mies. danych | Jednorazowy 2-10k PLN |
+| 9 | **API jako produkt** | Gdy dane stabilne | Pasywny, skalowalny B2B |
+| 10 | **Turnieje i eventy** | Gdy masz ogólnopolską skalę | Nowy segment, ta sama baza |
+
+### Sponsorowane alerty — szczegóły
+
+Najważniejszy insight: moment otrzymania alertu to **peak attention** użytkownika (podekscytowany, telefon w ręku, zaraz bookuje). CTR reklamy w tym momencie może być 10-20x wyższy niż standardowy banner.
+
+Format SMS:
+```
+Wolny kort! Mana Padel, jutro 19:00-21:00, 400 PLN → [link]
+Sponsorowane przez HEAD: -10% z kodem COURTALERT → head.com/pl
+```
+
+Podejście:
+1. Teraz: rejestracja w programach afiliacyjnych (Head, Babolat, Padelmania.pl) — 1h
+2. Po 5k+ alertów/mies.: direct sponsorship (wyłączność kategorii) — 1,000-5,000 PLN/mies.
+
+### Dashboard analityczny dla klubów — kluczowy insight
+
+Klub widzi tylko swoje rezerwacje. Court Alert widzi **niezaspokojoną podaż** — kiedy ludzie szukają kortów których nie ma. Ta informacja jest nieosiągalna dla klubu bez agregatoraTa unikalna pozycja to fundament pod B2B w przyszłości.
+
+### Sekwencja ogólnopolskiej ekspansji
+
+1. Warszawa (done — 15 klubów)
+2. Kraków, Wrocław, Trójmiasto — następne
+3. Pozostałe duże miasta
+4. Ogólnopolska skala → leverage w rozmowach z markami i klubami

@@ -90,6 +90,35 @@ const PRICING: Record<string, ClubPricing> = {
       { hourlyRate: 110, weekendOnly: true, fromHour: 7,  toHour: 19 },
     ],
   },
+  // ── Śląsk ─────────────────────────────────────────────────────────────────
+  'padelup-katowice': {
+    // https://rezerwacje.padelup.pl — pn-pt do 16: 110, 16-23: 140 / weekend: 140
+    defaultHourlyRate: 140,
+    tiers: [
+      { hourlyRate: 110, weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 140, weekdayOnly: true, fromHour: 16, toHour: 23 },
+      { hourlyRate: 140, weekendOnly: true },
+    ],
+  },
+  'ultra-padel-gliwice': {
+    // https://ultra-padel.pl — pn-pt do 16: 100, 16-22: 120 / weekend: 120
+    defaultHourlyRate: 120,
+    tiers: [
+      { hourlyRate: 100, weekdayOnly: true, fromHour: 8,  toHour: 16 },
+      { hourlyRate: 120, weekdayOnly: true, fromHour: 16, toHour: 22 },
+      { hourlyRate: 120, weekendOnly: true },
+    ],
+  },
+  'sport-park-slask': {
+    // https://sportparkslask.pl — pn-pt do 16: 110, 16-22: 140 / weekend: 140
+    defaultHourlyRate: 140,
+    tiers: [
+      { hourlyRate: 110, weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 140, weekdayOnly: true, fromHour: 16, toHour: 22 },
+      { hourlyRate: 140, weekendOnly: true },
+    ],
+  },
+
   'padlovnia': {
     // https://padlovnia.pl — cennik zimowy 2025-2026
     // Indoor: pn-pt 07-16: 140, 16-24: 180 / weekend: 180
