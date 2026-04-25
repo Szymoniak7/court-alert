@@ -355,6 +355,17 @@ export const CLUBS: Club[] = [
     defaultCourtType: 'outdoor',
   },
 
+  // ── Poznań (cd.) ──────────────────────────────────────────────────────────
+  {
+    id: 'passion-padel',
+    name: 'Passion Padel',
+    city: 'Poznań',
+    source: 'playtomic',
+    playtomicTenantId: '98ee88f9-0ad1-4c0e-84ab-f620097ee1d2',
+    playtomicSlug: 'passion-padel',
+    defaultCourtType: 'indoor',
+  },
+
   // ── Toruń ─────────────────────────────────────────────────────────────────
   {
     id: 'interpadel-torun',
@@ -365,6 +376,16 @@ export const CLUBS: Club[] = [
     playtomicTenantId: '08e4db64-8cdd-4ae1-b38e-a8f7a77bfdcc',
     playtomicSlug: 'interpadel-torun',
     defaultCourtType: 'indoor',
+  },
+  {
+    id: 'rancho-padel-club',
+    name: 'Rancho Padel Club',
+    shortName: 'Rancho Padel',
+    city: 'Toruń',
+    source: 'playtomic',
+    playtomicTenantId: '9ac2868b-0085-4e1b-b22e-229866a1ad62',
+    playtomicSlug: 'rancho-padel-club',
+    defaultCourtType: 'outdoor',
   },
   {
     id: 'city-padel-torun',

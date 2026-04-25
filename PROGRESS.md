@@ -678,45 +678,134 @@ Kluczowe ustalenia:
 
 ## Analiza ogólnopolska — mapa pokrycia (25.04.2026)
 
-### Pokrycie obecne (46 klubów, 10 regionów)
+### Kompletna mapa rynku padlowego w Polsce (sesja 15, 25.04.2026)
 
-| Miasto/Region | Mamy | Wszystkich est. | Pokrycie |
-|---------------|------|-----------------|----------|
-| Warszawa | 15 | ~20 | ~75% |
-| Śląsk | 11 | ~22 | ~50% |
-| Trójmiasto | 6 | ~12 | ~50% |
-| Toruń | 2 | 4 | 50% |
-| Poznań | 3 | 7 | 43% |
-| Wrocław | 3 | 3 | 100% |
-| Łódź | 2 | 4 | 50% |
-| Opole | 1 | 1 | 100% |
-| Bydgoszcz | 2 | 3 | 67% |
-| Szczecin | 1 | 2 | 50% |
+#### ✅ W aplikacji (48 klubów)
 
-### Zablokowane / zły system — nie da się zintegrować
+| # | Klub | Miasto | System |
+|---|------|--------|--------|
+| 1 | Loba Padel | Warszawa | Playtomic |
+| 2 | Mana Padel | Warszawa | kluby-auth |
+| 3 | Toro Padel | Warszawa | kluby (public) |
+| 4 | InterPadel Warszawa | Warszawa | Playtomic |
+| 5 | Warsaw Padel Club | Warszawa | Playtomic |
+| 6 | RQT Spot | Warszawa | Playtomic |
+| 7 | Padlovnia | Warszawa | kluby-auth |
+| 8 | Rakiety PGE Narodowy | Warszawa | Playtomic |
+| 9 | Rakiety Aero | Warszawa | Playtomic |
+| 10 | ProPadel Jutrzenki | Warszawa | kluby-auth |
+| 11 | WKT Mera | Warszawa | kluby-auth |
+| 12 | Sporteum Power Padel | Warszawa | kluby-auth |
+| 13 | Klub Miedzeszyn | Warszawa | kluby-auth |
+| 14 | TenisWil | Warszawa | kluby-auth |
+| 15 | Tenes Jawczyce | Warszawa | kluby-auth |
+| 16 | Viva Padel Katowice | Katowice | Playtomic |
+| 17 | Padel Center & Academy | Katowice | Playtomic |
+| 18 | Padel Up Katowice | Katowice | kluby-auth |
+| 19 | Padel Team Tychy | Tychy | Playtomic |
+| 20 | Padel Team Bytom | Bytom | Playtomic |
+| 21 | Padelteam Zabrze | Zabrze | Playtomic |
+| 22 | Padelmania Dąbrowa | Dąbrowa Górnicza | Playtomic |
+| 23 | Padel On | Pszczyna | Playtomic |
+| 24 | Ultra Padel Gliwice | Gliwice | kluby-auth |
+| 25 | Sport Park Śląsk | Chorzów | kluby-auth |
+| 26 | Solar | Bielsko-Biała | kluby-auth |
+| 27 | Padel PL Wrocław | Wrocław | Playtomic |
+| 28 | Fiesta Padel | Wrocław | Playtomic |
+| 29 | Morskie Oko | Wrocław | kluby-auth |
+| 30 | Padel Łódź | Łódź | kluby-auth |
+| 31 | Stacja Padel | Łódź | kluby-auth |
+| 32 | Pop Yard | Opole | Playtomic |
+| 33 | InterPadel Poznań | Poznań | Playtomic |
+| 34 | PLEK Padel | Poznań | Playtomic |
+| 35 | Akademia Padla Bukowska | Poznań/Wysogotowo | Playtomic |
+| 36 | Passion Padel | Poznań | Playtomic |
+| 37 | InterPadel Gdynia | Trójmiasto | Playtomic |
+| 38 | Baltic Padel Club | Trójmiasto | kluby-auth |
+| 39 | Gdynia Padel Club | Trójmiasto | kluby-auth |
+| 40 | Padbox Stadion | Trójmiasto | kluby-auth |
+| 41 | Padbox Kartuska | Trójmiasto | kluby-auth |
+| 42 | Padel Park (Pruszcz Gdański) | Trójmiasto | kluby-auth |
+| 43 | InterPadel Toruń | Toruń | Playtomic |
+| 44 | Rancho Padel Club | Toruń/Mała Nieszawka | Playtomic |
+| 45 | City Padel Toruń | Toruń | Playtomic |
+| 46 | PURA Padel | Bydgoszcz | kluby-auth |
+| 47 | Fast Tennis & Padel | Bydgoszcz | kluby-auth |
+| 48 | Fabryka Energii | Szczecin | Playtomic |
 
-| Klub | Miasto | Powód |
-|------|--------|-------|
-| Garden Padel | Kraków | **Tenis4u** (własny system, nie kluby.org) |
-| Bajada Padel Club | Kraków | Brak rezerwacji online na kluby.org |
-| Padel House Kraków | Kraków | Brak rezerwacji online |
-| Ahoj Padel | Niepołomice | Brak rezerwacji online |
-| CSR Platinum | Rybnik | Brak online (2 korty — za mały) |
-| Padel Club Szczecin | Szczecin | Własny system (SMS kod do bramy) |
-| Brawo Padel & Squash | Gdańsk | **Playmore** + Reservise (2 korty — za mały) |
-| Vera Sport | Łódź | **Playmore** |
-| ProPadel by Legia | Warszawa | **Courtme.io** |
-| Padel Factory | Kraków | Brak aktywnych rezerwacji online |
-| Tenispoint | Bydgoszcz | Tylko telefon (2 korty) |
+---
 
-### Brak systemu / za małe (skip na razie)
+#### ❌ Nie mamy — zły system lub brak online
 
-| Miasto | Sytuacja |
-|--------|----------|
-| Kraków | Cały odcięty — Tenis4u + Playmore + wyłączone online |
-| Lublin | Padel Point (5 kortów) — własny system |
-| Rzeszów | Padelbox (2 korty) — za mały |
-| Białystok | 2 obiekty, brak Playtomic/kluby |
-| Kielce | 1 obiekt |
-| Olsztyn / Warmia | 5 obiektów, małe / własne systemy |
-| Zielona Góra / Gorzów | po 1 obiekcie, własne systemy |
+**Warszawa:**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| ProPadel by Legia | 4 | Courtme.io, sezonowy outdoor |
+| DeSki Warszawa | ? | Własny system (deski.org) |
+| Sinus Sport Club | ? | Reservise |
+| Happy Padel Wesoła | 1 | Za mały |
+| Bulwary Wiślane | 1 | Za mały / własny system |
+| Konstancin | 1 | Za mały, podmiejski |
+
+**Kraków — cały odcięty (Tenis4U dominuje):**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| Bajada Padel Club | 5 | Brak online na kluby.org |
+| Padel House | 4 | Brak online |
+| Garden Padel | 4 | Tenis4U |
+| SAO Sports Hub | 2 | Tenis4U |
+| Morelowa 34 Padel Lounge | 1 | Tenis4U |
+| Fame Sport Club | 2 | Brak systemu |
+| Ahoj Padel (Niepołomice) | 4 | Brak online na kluby.org |
+
+**Śląsk:**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| CSR Platinum Rybnik | 2 | Brak online |
+| Rockets Center Tarnowskie Góry | 3 | gymmanager.com.pl |
+| MOSIR Katowice | 1-2 | Municypalny |
+
+**Trójmiasto:**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| Brawo Padel & Squash Gdańsk | 2 | Playmore |
+
+**Poznań:**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| Akademia Padla (Winogrady 11) | 4 | Reservise |
+| Sport & Beauty Fabianowo | 3 | Własna strona |
+| POSIR Poznań | 4 | Reservise |
+
+**Łódź:**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| Vera Padel (Vera Sport) | 4 | Playmore |
+| Korty Nowosolna | 1 | Za mały |
+
+**Szczecin:**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| Padel Club Szczecin | 5 | Własny system (SMS do bramy) |
+
+**Bydgoszcz:**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| Tenispoint Bydgoszcz | 2 | Tylko telefon |
+
+**Białystok:**
+| Klub | Korty | Powód |
+|------|-------|-------|
+| Padel Point Białystok | 5 | Playmore |
+| Ośrodek Sportowy Zawady | 4 | Brak online? |
+
+**Pozostałe miasta:**
+| Klub | Miasto | Korty | Powód |
+|------|--------|-------|-------|
+| Padel Point Lublin | Lublin | 5 | Własny system |
+| Rakietmania Lublin | Lublin | 1 | Za mały |
+| Padelbox Rzeszów | Rzeszów | 2 | Własny system? |
+| CSR GEMIK Kielce | Kielce | 3 | Własny system? |
+| Vamos Padel | Gorzów Wlkp. | 2 | Playmore |
+| MOSIR Zielona Góra | Zielona Góra | ? | Municypalny |
+| Olsztyn (obiekt) | Olsztyn | ? | Nieznane |

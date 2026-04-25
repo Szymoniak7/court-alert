@@ -245,12 +245,26 @@ export const CLUB_COLORS: Record<string, {
     header: 'text-green-500',
   },
 
+  // ── Poznań (cd.) ──────────────────────────────────────────────────────────
+  'passion-padel': {
+    hex: '#ec4899',
+    cell: 'bg-pink-500/20 border-pink-500/35 text-pink-200 hover:bg-pink-500/30',
+    badge: 'bg-pink-950 text-pink-300 border-pink-800',
+    header: 'text-pink-400',
+  },
+
   // ── Toruń ─────────────────────────────────────────────────────────────────
   'interpadel-torun': {
     hex: '#0284c7',
     cell: 'bg-sky-600/20 border-sky-600/35 text-sky-200 hover:bg-sky-600/30',
     badge: 'bg-sky-950 text-sky-300 border-sky-800',
     header: 'text-sky-500',
+  },
+  'rancho-padel-club': {
+    hex: '#78350f',
+    cell: 'bg-amber-900/30 border-amber-700/40 text-amber-200 hover:bg-amber-900/40',
+    badge: 'bg-amber-950 text-amber-300 border-amber-800',
+    header: 'text-amber-700',
   },
   'city-padel-torun': {
     hex: '#f59e0b',
