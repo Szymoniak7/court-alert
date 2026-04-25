@@ -70,7 +70,6 @@ Next.js App Router (TypeScript + Tailwind CSS)
 | Padelmania Dąbrowa | `padelmania-dabrowa` | Playtomic API | tenantId: `7bf2e08e-...` |
 | Padel On | `padel-on` | Playtomic API | tenantId: `8b616ddb-...`, Pszczyna |
 | Ultra Padel Gliwice | `ultra-padel-gliwice` | kluby.org (auth) | slug: `ultra-padel-gliwice`, indoor |
-| Sport Park Śląsk | `sport-park-slask` | kluby.org (auth) | slug: `sport-park`, Chorzów |
 
 #### Wrocław (2)
 | Klub | ID | Źródło | Szczegóły |
@@ -680,7 +679,7 @@ Kluczowe ustalenia:
 
 ### Kompletna mapa rynku padlowego w Polsce (sesja 15, 25.04.2026)
 
-#### ✅ W aplikacji (48 klubów)
+#### ✅ W aplikacji (45 klubów)
 
 | # | Klub | Miasto | System |
 |---|------|--------|--------|
@@ -708,30 +707,28 @@ Kluczowe ustalenia:
 | 22 | Padelmania Dąbrowa | Dąbrowa Górnicza | Playtomic |
 | 23 | Padel On | Pszczyna | Playtomic |
 | 24 | Ultra Padel Gliwice | Gliwice | kluby-auth |
-| 25 | Sport Park Śląsk | Chorzów | kluby-auth |
-| 26 | Solar | Bielsko-Biała | kluby-auth |
-| 27 | Padel PL Wrocław | Wrocław | Playtomic |
-| 28 | Fiesta Padel | Wrocław | Playtomic |
-| 29 | Morskie Oko | Wrocław | kluby-auth |
-| 30 | Padel Łódź | Łódź | kluby-auth |
-| 31 | Stacja Padel | Łódź | kluby-auth |
-| 32 | Pop Yard | Opole | Playtomic |
-| 33 | InterPadel Poznań | Poznań | Playtomic |
-| 34 | PLEK Padel | Poznań | Playtomic |
-| 35 | Akademia Padla Bukowska | Poznań/Wysogotowo | Playtomic |
-| 36 | Passion Padel | Poznań | Playtomic |
-| 37 | InterPadel Gdynia | Trójmiasto | Playtomic |
-| 38 | Baltic Padel Club | Trójmiasto | kluby-auth |
-| 39 | Gdynia Padel Club | Trójmiasto | kluby-auth |
-| 40 | Padbox Stadion | Trójmiasto | kluby-auth |
-| 41 | Padbox Kartuska | Trójmiasto | kluby-auth |
-| 42 | Padel Park (Pruszcz Gdański) | Trójmiasto | kluby-auth |
-| 43 | InterPadel Toruń | Toruń | Playtomic |
-| 44 | Rancho Padel Club | Toruń/Mała Nieszawka | Playtomic |
-| 45 | City Padel Toruń | Toruń | Playtomic |
-| 46 | PURA Padel | Bydgoszcz | kluby-auth |
-| 47 | Fast Tennis & Padel | Bydgoszcz | kluby-auth |
-| 48 | Fabryka Energii | Szczecin | Playtomic |
+| 25 | Solar | Bielsko-Biała | kluby-auth |
+| 26 | Padel PL Wrocław | Wrocław | Playtomic |
+| 27 | Fiesta Padel | Wrocław | Playtomic |
+| 28 | Morskie Oko | Wrocław | kluby-auth |
+| 29 | Padel Łódź | Łódź | kluby-auth |
+| 30 | Stacja Padel | Łódź | kluby-auth |
+| 31 | Pop Yard | Opole | Playtomic |
+| 32 | InterPadel Poznań | Poznań | Playtomic |
+| 33 | PLEK Padel | Poznań | Playtomic |
+| 34 | Akademia Padla Bukowska | Poznań/Wysogotowo | Playtomic |
+| 35 | Passion Padel | Poznań | Playtomic |
+| 36 | InterPadel Gdynia | Trójmiasto | Playtomic |
+| 37 | Baltic Padel Club | Trójmiasto | kluby-auth |
+| 38 | Gdynia Padel Club | Trójmiasto | kluby-auth |
+| 39 | Padbox Stadion | Trójmiasto | kluby-auth |
+| 40 | Padbox Kartuska | Trójmiasto | kluby-auth |
+| 41 | Padel Park (Pruszcz Gdański) | Trójmiasto | kluby-auth |
+| 42 | InterPadel Toruń | Toruń | Playtomic |
+| 43 | Rancho Padel Club | Toruń/Mała Nieszawka | Playtomic |
+| 44 | City Padel Toruń | Toruń | Playtomic |
+| 45 | PURA Padel | Bydgoszcz | kluby-auth |
+| 46 | Fabryka Energii | Szczecin | Playtomic |
 
 ---
 
@@ -761,6 +758,8 @@ Kluczowe ustalenia:
 **Śląsk:**
 | Klub | Korty | Powód |
 |------|-------|-------|
+| Sport Park Śląsk (Chorzów) | 5 indoor | Tenis4U — korty "padel hala", potwierdzone 25.04.2026 |
+| Solar (Bielsko-Biała) | ? | kluby.org slug `solar` — typ kortów nieznany, do weryfikacji |
 | CSR Platinum Rybnik | 2 | Brak online |
 | Rockets Center Tarnowskie Góry | 3 | gymmanager.com.pl |
 | MOSIR Katowice | 1-2 | Municypalny |
@@ -791,6 +790,7 @@ Kluczowe ustalenia:
 **Bydgoszcz:**
 | Klub | Korty | Powód |
 |------|-------|-------|
+| Fast Tennis & Padel | 2 outdoor | Sezonowe (tylko lato), slug `fast-tennis-gdanska` na kluby.org — do dodania gdy potwierdzimy cennik |
 | Tenispoint Bydgoszcz | 2 | Tylko telefon |
 
 **Białystok:**
@@ -809,3 +809,41 @@ Kluczowe ustalenia:
 | Vamos Padel | Gorzów Wlkp. | 2 | Playmore |
 | MOSIR Zielona Góra | Zielona Góra | ? | Municypalny |
 | Olsztyn (obiekt) | Olsztyn | ? | Nieznane |
+
+---
+
+## ⏳ Zaległe taski
+
+### Do zrobienia ~2.05.2026 (po majówce)
+
+#### 1. Cennik Mery — aktualizacja
+Obecny cennik 110 PLN flat **wygasa 30.04.2026** (komentarz w `pricing.ts:51`).
+Sprawdź nowy cennik: https://kluby.org/mera (zakładka cennik lub grafik)
+Zaktualizuj `PRICING['mera']` w `lib/pricing.ts`.
+
+#### 2. Weryfikacja indoor/outdoor — 6 klubów
+Wejdź na grafik każdego klubu i sprawdź jak nazywają się korty. Nasz scraper wykrywa typy po słowach kluczowych:
+- **outdoor**: `zewn`, `outdoor`, `open`, `odkryt`
+- **indoor**: `kryt`, `indoor`, `wewn`, `hala`
+
+Jeśli nazwy kortów nie zawierają tych słów → trzeba dodać `defaultCourtType` lub hardcode jak w Padlovni.
+
+| Klub | Link grafiku | Sprawdź |
+|------|-------------|---------|
+| **Sport Park Śląsk** | https://kluby.org/klub/sport-park/dedykowane/grafik | Czy korty mają nazwy z `kryt`/`zewn`? Ma 2 indoor + 2 outdoor. |
+| **Gdynia Padel Club** | ✅ | 3 indoor (KORT 1-3 HALA) + 3 outdoor (KORT 4-6 ODKRYTE) — nagłówki na kluby.org, detekcja działa po fixie scrapera (sesja 16). |
+| **Padel Łódź** | https://kluby.org/klub/padel-lodz/dedykowane/grafik | 1 indoor + 1 outdoor — czy nazwy kortów mają słowa klucze? |
+| **Fast Tennis & Padel** | https://kluby.org/klub/fast-tennis-gdanska/dedykowane/grafik | Dodać `defaultCourtType: 'indoor'`? |
+| **Solar** | https://kluby.org/klub/solar/dedykowane/grafik | Dodać `defaultCourtType`? |
+| **Padel Park** | ✅ | 7 indoor — potwierdzone. `defaultCourtType: 'indoor'` dodane. |
+
+Potrzebny login na kluby.org (dane w `.env.local`).
+
+#### 3. Weryfikacja szacunkowych cen — 5 klubów
+| Klub | Szacunek | Link cennika |
+|------|---------|-------------|
+| PURA Padel | 110/140 PLN | https://kluby.org/pura-padel-pickleball |
+| Fast Tennis | 90/120 PLN | https://fasttennis.pl |
+| Solar | 90/120 PLN | https://kluby.org/klub/solar |
+| Morskie Oko | 80/100 PLN | https://kluby.org/morskie-oko |
+| Padel Park | 80/110 PLN | https://kluby.org/klub/padel-park |

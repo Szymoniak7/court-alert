@@ -9,7 +9,7 @@ const CITY_ORDER = [
   'Warszawa',
   'Łódź',
   'Wrocław',
-  'Katowice', 'Gliwice', 'Chorzów', 'Bytom', 'Zabrze', 'Tychy', 'Dąbrowa Górnicza', 'Pszczyna', 'Bielsko-Biała',
+  'Śląsk',
   'Opole',
   'Poznań',
   'Trójmiasto',
@@ -20,24 +20,16 @@ const CITY_ORDER = [
 
 // City center coords for geolocation detection [lat, lng]
 const CITY_COORDS: Record<string, [number, number]> = {
-  'Warszawa':          [52.23, 21.01],
-  'Wrocław':           [51.11, 17.04],
-  'Katowice':          [50.26, 19.02],
-  'Gliwice':           [50.29, 18.67],
-  'Chorzów':           [50.30, 18.95],
-  'Bytom':             [50.35, 18.91],
-  'Zabrze':            [50.32, 18.79],
-  'Tychy':             [50.14, 18.98],
-  'Dąbrowa Górnicza':  [50.32, 19.18],
-  'Pszczyna':          [49.98, 18.95],
-  'Bielsko-Biała':     [49.82, 19.06],
-  'Łódź':              [51.77, 19.46],
-  'Opole':             [50.68, 17.92],
-  'Poznań':            [52.41, 16.93],
-  'Trójmiasto':        [54.40, 18.57],
-  'Toruń':             [53.01, 18.60],
-  'Bydgoszcz':         [53.12, 18.01],
-  'Szczecin':          [53.43, 14.55],
+  'Warszawa':   [52.23, 21.01],
+  'Wrocław':    [51.11, 17.04],
+  'Śląsk':      [50.26, 19.02],
+  'Łódź':       [51.77, 19.46],
+  'Opole':      [50.68, 17.92],
+  'Poznań':     [52.41, 16.93],
+  'Trójmiasto': [54.40, 18.57],
+  'Toruń':      [53.01, 18.60],
+  'Bydgoszcz':  [53.12, 18.01],
+  'Szczecin':   [53.43, 14.55],
 };
 
 function detectCity(lat: number, lng: number): string | null {

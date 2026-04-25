@@ -150,13 +150,6 @@ export const CLUB_COLORS: Record<string, {
     badge: 'bg-cyan-900 text-cyan-200 border-cyan-700',
     header: 'text-cyan-300',
   },
-  'sport-park-slask': {
-    hex: '#7dd3fc',
-    cell: 'bg-sky-300/20 border-sky-300/35 text-sky-200 hover:bg-sky-300/30',
-    badge: 'bg-sky-900 text-sky-200 border-sky-700',
-    header: 'text-sky-300',
-  },
-
   // ── Wrocław ───────────────────────────────────────────────────────────────
   'padel-pl-wroclaw': {
     hex: '#4ade80',
@@ -287,20 +280,6 @@ export const CLUB_COLORS: Record<string, {
     cell: 'bg-violet-600/20 border-violet-600/35 text-violet-200 hover:bg-violet-600/30',
     badge: 'bg-violet-950 text-violet-300 border-violet-800',
     header: 'text-violet-500',
-  },
-  'fast-tennis': {
-    hex: '#0891b2',
-    cell: 'bg-cyan-600/20 border-cyan-600/35 text-cyan-200 hover:bg-cyan-600/30',
-    badge: 'bg-cyan-950 text-cyan-300 border-cyan-800',
-    header: 'text-cyan-500',
-  },
-
-  // ── Bielsko-Biała ─────────────────────────────────────────────────────────
-  'solar': {
-    hex: '#eab308',
-    cell: 'bg-yellow-500/20 border-yellow-500/35 text-yellow-200 hover:bg-yellow-500/30',
-    badge: 'bg-yellow-950 text-yellow-300 border-yellow-800',
-    header: 'text-yellow-400',
   },
 
   // ── Wrocław (cd.) ─────────────────────────────────────────────────────────

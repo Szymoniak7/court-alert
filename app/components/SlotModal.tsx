@@ -87,26 +87,26 @@ export default function SlotModal({ slots, onClose }: Props) {
                     href={slot.bookingUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-[0.98] transition group"
+                    className="flex items-start justify-between gap-3 p-3 rounded-xl bg-gray-800 hover:bg-gray-700 active:scale-[0.98] transition group"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-white">{slot.courtName}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white">{slot.courtName}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
                         {slot.courtType && (
-                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide ${
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide flex-shrink-0 ${
                             slot.courtType === 'indoor'
                               ? 'bg-blue-900/60 text-blue-300'
                               : 'bg-amber-900/60 text-amber-300'
                           }`}>
-                            {slot.courtType === 'indoor' ? 'indoor' : 'outdoor'}
+                            {slot.courtType === 'indoor' ? 'Indoor' : 'Outdoor'}
                           </span>
                         )}
+                        {slot.price && (
+                          <p className="text-xs text-gray-400">{slot.price}</p>
+                        )}
                       </div>
-                      {slot.price && (
-                        <p className="text-xs text-gray-400 mt-0.5">{slot.price}</p>
-                      )}
                     </div>
-                    <span className="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 transition">
+                    <span className="text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 transition flex-shrink-0 mt-0.5">
                       Rezerwuj →
                     </span>
                   </a>

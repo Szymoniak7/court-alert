@@ -14,23 +14,16 @@ export async function GET() {
     });
 
   const today = toDate(0);
-  const tomorrow = toDate(1);
 
-  const playtomicClubs = CLUBS.filter((c) => c.source === 'playtomic');
-  const klubyClubs = CLUBS.filter((c) => c.source === 'kluby' || c.source === 'kluby-auth');
-
-  const semaphore = makeSemaphore(12);
-
-  const tasks = [
-    // Playtomic — 2 dates, fully parallel (no semaphore needed, different domains)
-    ...buildTasks([today, tomorrow], playtomicClubs, semaphore),
-    // kluby.org — today only (rate limit protection, tomorrow warms on first user request)
-    ...buildTasks([today], klubyClubs, semaphore),
-  ];
+  // Warm only fast clubs (Playtomic + public kluby) — no auth, fully parallel, < 2s even on cold start.
+  // Auth clubs (kluby-auth) warm on first user request via streaming.
+  const fastClubs = CLUBS.filter((c) => c.source === 'playtomic' || c.source === 'kluby');
+  const semaphore = makeSemaphore(20);
+  const tasks = buildTasks([today], fastClubs, semaphore);
 
   const results = await Promise.allSettled(tasks.map((t) => t.promise));
   const succeeded = results.filter((r) => r.status === 'fulfilled').length;
   const failed = results.length - succeeded;
 
-  return NextResponse.json({ ok: true, today, tomorrow, total: results.length, succeeded, failed });
+  return NextResponse.json({ ok: true, today, total: tasks.length, succeeded, failed });
 }

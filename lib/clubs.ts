@@ -151,7 +151,7 @@ export const CLUBS: Club[] = [
     id: 'viva-padel-katowice',
     name: 'Viva Padel Katowice',
     shortName: 'Viva Padel',
-    city: 'Katowice',
+    city: 'Śląsk',
     source: 'playtomic',
     playtomicTenantId: '84b91836-ee5b-42f1-8c44-77cde714d2e9',
     playtomicSlug: 'viva-padel-katowice',
@@ -160,7 +160,7 @@ export const CLUBS: Club[] = [
     id: 'padel-center-katowice',
     name: 'Padel Center & Academy',
     shortName: 'Padel Center',
-    city: 'Katowice',
+    city: 'Śląsk',
     source: 'playtomic',
     playtomicTenantId: 'dd500ac3-5004-41ee-ab6c-c60545ae3ae4',
     playtomicSlug: 'padel-center-academy',
@@ -169,7 +169,7 @@ export const CLUBS: Club[] = [
     id: 'padelup-katowice',
     name: 'Padel Up Katowice',
     shortName: 'Padel Up',
-    city: 'Katowice',
+    city: 'Śląsk',
     source: 'kluby-auth',
     klubySlug: 'padelup',
     defaultCourtType: 'indoor',
@@ -177,7 +177,7 @@ export const CLUBS: Club[] = [
   {
     id: 'padel-team-tychy',
     name: 'Padel Team Tychy',
-    city: 'Tychy',
+    city: 'Śląsk',
     source: 'playtomic',
     playtomicTenantId: 'd5a93847-b621-4852-9fa1-4a310afd3423',
     playtomicSlug: 'padel-team-tychy',
@@ -185,7 +185,7 @@ export const CLUBS: Club[] = [
   {
     id: 'padel-team-bytom',
     name: 'Padel Team Bytom',
-    city: 'Bytom',
+    city: 'Śląsk',
     source: 'playtomic',
     playtomicTenantId: '05a9122e-d8ff-442d-a026-58b98170b4d8',
     playtomicSlug: 'padel-team-bytom',
@@ -193,7 +193,7 @@ export const CLUBS: Club[] = [
   {
     id: 'padelteam-zabrze',
     name: 'Padelteam Zabrze',
-    city: 'Zabrze',
+    city: 'Śląsk',
     source: 'playtomic',
     playtomicTenantId: '90779e1e-84b3-404f-820d-73a83a467b4e',
     playtomicSlug: 'padelteam-zabrze',
@@ -202,7 +202,7 @@ export const CLUBS: Club[] = [
     id: 'padelmania-dabrowa',
     name: 'Padelmania Dąbrowa',
     shortName: 'Padelmania',
-    city: 'Dąbrowa Górnicza',
+    city: 'Śląsk',
     source: 'playtomic',
     playtomicTenantId: '7bf2e08e-d38c-414f-9c34-a80f112646d3',
     playtomicSlug: 'padelmania-club',
@@ -210,7 +210,7 @@ export const CLUBS: Club[] = [
   {
     id: 'padel-on',
     name: 'Padel On',
-    city: 'Pszczyna',
+    city: 'Śląsk',
     source: 'playtomic',
     playtomicTenantId: '8b616ddb-93a6-4629-a00a-b940a3f66e20',
     playtomicSlug: 'padel-on',
@@ -219,18 +219,10 @@ export const CLUBS: Club[] = [
     id: 'ultra-padel-gliwice',
     name: 'Ultra Padel Gliwice',
     shortName: 'Ultra Padel',
-    city: 'Gliwice',
+    city: 'Śląsk',
     source: 'kluby-auth',
     klubySlug: 'ultra-padel-gliwice',
     defaultCourtType: 'indoor',
-  },
-  {
-    id: 'sport-park-slask',
-    name: 'Sport Park Śląsk',
-    shortName: 'Sport Park',
-    city: 'Chorzów',
-    source: 'kluby-auth',
-    klubySlug: 'sport-park',
   },
 
   // ── Wrocław ───────────────────────────────────────────────────────────────
@@ -250,6 +242,14 @@ export const CLUBS: Club[] = [
     source: 'playtomic',
     playtomicTenantId: 'cf58118a-353b-4ec1-a51e-ea52acc99063',
     playtomicSlug: 'fiesta-padel',
+  },
+  {
+    id: 'morskie-oko',
+    name: 'Morskie Oko',
+    city: 'Wrocław',
+    source: 'kluby-auth',
+    klubySlug: 'morskie-oko',
+    defaultCourtType: 'outdoor',
   },
 
   // ── Łódź ──────────────────────────────────────────────────────────────────
@@ -310,6 +310,16 @@ export const CLUBS: Club[] = [
     defaultCourtType: 'indoor',
   },
 
+  {
+    id: 'passion-padel',
+    name: 'Passion Padel',
+    city: 'Poznań',
+    source: 'playtomic',
+    playtomicTenantId: '98ee88f9-0ad1-4c0e-84ab-f620097ee1d2',
+    playtomicSlug: 'passion-padel',
+    defaultCourtType: 'indoor',
+  },
+
   // ── Trójmiasto ────────────────────────────────────────────────────────────
   {
     id: 'interpadel-gdynia',
@@ -354,15 +364,12 @@ export const CLUBS: Club[] = [
     klubySlug: 'padbox-kartuska',
     defaultCourtType: 'outdoor',
   },
-
-  // ── Poznań (cd.) ──────────────────────────────────────────────────────────
   {
-    id: 'passion-padel',
-    name: 'Passion Padel',
-    city: 'Poznań',
-    source: 'playtomic',
-    playtomicTenantId: '98ee88f9-0ad1-4c0e-84ab-f620097ee1d2',
-    playtomicSlug: 'passion-padel',
+    id: 'padel-park',
+    name: 'Padel Park',
+    city: 'Trójmiasto',
+    source: 'kluby-auth',
+    klubySlug: 'padel-park',
     defaultCourtType: 'indoor',
   },
 
@@ -418,40 +425,5 @@ export const CLUBS: Club[] = [
     klubySlug: 'pura-padel-pickleball',
     defaultCourtType: 'indoor',
   },
-  {
-    id: 'fast-tennis',
-    name: 'Fast Tennis & Padel',
-    shortName: 'Fast Tennis',
-    city: 'Bydgoszcz',
-    source: 'kluby-auth',
-    klubySlug: 'fast-tennis-gdanska',
-  },
 
-  // ── Bielsko-Biała ─────────────────────────────────────────────────────────
-  {
-    id: 'solar',
-    name: 'Solar',
-    city: 'Bielsko-Biała',
-    source: 'kluby-auth',
-    klubySlug: 'solar',
-  },
-
-  // ── Wrocław (cd.) ─────────────────────────────────────────────────────────
-  {
-    id: 'morskie-oko',
-    name: 'Morskie Oko',
-    city: 'Wrocław',
-    source: 'kluby-auth',
-    klubySlug: 'morskie-oko',
-    defaultCourtType: 'outdoor',
-  },
-
-  // ── Pruszcz Gdański (Trójmiasto) ──────────────────────────────────────────
-  {
-    id: 'padel-park',
-    name: 'Padel Park',
-    city: 'Trójmiasto',
-    source: 'kluby-auth',
-    klubySlug: 'padel-park',
-  },
 ];

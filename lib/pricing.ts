@@ -109,16 +109,6 @@ const PRICING: Record<string, ClubPricing> = {
       { hourlyRate: 120, weekendOnly: true },
     ],
   },
-  'sport-park-slask': {
-    // https://sportparkslask.pl — pn-pt do 16: 110, 16-22: 140 / weekend: 140
-    defaultHourlyRate: 140,
-    tiers: [
-      { hourlyRate: 110, weekdayOnly: true, fromHour: 7,  toHour: 16 },
-      { hourlyRate: 140, weekdayOnly: true, fromHour: 16, toHour: 22 },
-      { hourlyRate: 140, weekendOnly: true },
-    ],
-  },
-
   // ── Łódź ──────────────────────────────────────────────────────────────────
   'padel-lodz': {
     // https://kluby.org/padel-lodz — indoor + outdoor: 120 PLN/h flat
@@ -196,26 +186,6 @@ const PRICING: Record<string, ClubPricing> = {
       { hourlyRate: 110, weekdayOnly: true, fromHour: 7,  toHour: 16 },
       { hourlyRate: 140, weekdayOnly: true, fromHour: 16, toHour: 23 },
       { hourlyRate: 140, weekendOnly: true },
-    ],
-  },
-  'fast-tennis': {
-    // https://fasttennis.pl — szacunek, cennik do weryfikacji
-    defaultHourlyRate: 120,
-    tiers: [
-      { hourlyRate: 90,  weekdayOnly: true, fromHour: 7,  toHour: 16 },
-      { hourlyRate: 120, weekdayOnly: true, fromHour: 16, toHour: 23 },
-      { hourlyRate: 120, weekendOnly: true },
-    ],
-  },
-
-  // ── Bielsko-Biała ─────────────────────────────────────────────────────────
-  'solar': {
-    // https://kluby.org/solar — szacunek, cennik do weryfikacji
-    defaultHourlyRate: 120,
-    tiers: [
-      { hourlyRate: 90,  weekdayOnly: true, fromHour: 7,  toHour: 16 },
-      { hourlyRate: 120, weekdayOnly: true, fromHour: 16, toHour: 22 },
-      { hourlyRate: 120, weekendOnly: true },
     ],
   },
 

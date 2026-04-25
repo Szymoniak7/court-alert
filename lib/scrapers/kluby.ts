@@ -163,9 +163,12 @@ function parseGrafikHtml(
   if (!table.length) return slots;
 
   const courtNames: string[] = [];
+  const courtFullTexts: string[] = [];
   table.find('tr').first().find('th, td').each((_, el) => {
-    const words = $(el).text().replace(/\s+/g, ' ').trim().split(' ');
+    const full = $(el).text().replace(/\s+/g, ' ').trim();
+    const words = full.split(' ');
     courtNames.push(words.slice(0, 2).join(' ') || 'Kort');
+    courtFullTexts.push(full.toLowerCase());
   });
 
   // Pass 1: build full grid (time × column → free/reserved)
@@ -242,11 +245,11 @@ function parseGrafikHtml(
 
   for (let colIdx = 0; colIdx < numCols; colIdx++) {
     const courtName = courtNames[colIdx + 1] || `Kort ${colIdx + 1}`;
-    const nameLower = courtName.toLowerCase();
+    const fullText = courtFullTexts[colIdx + 1] ?? courtName.toLowerCase();
     let courtType: 'indoor' | 'outdoor' | undefined =
-      nameLower.includes('zewn') || nameLower.includes('outdoor') || nameLower.includes('open') || nameLower.includes('odkryt')
+      fullText.includes('zewn') || fullText.includes('outdoor') || fullText.includes('open') || fullText.includes('odkryt') || fullText.includes('otwart')
         ? 'outdoor'
-        : nameLower.includes('kryt') || nameLower.includes('indoor') || nameLower.includes('wewn') || nameLower.includes('hala')
+        : fullText.includes('kryt') || fullText.includes('indoor') || fullText.includes('wewn') || fullText.includes('hala')
         ? 'indoor'
         : undefined;
 
