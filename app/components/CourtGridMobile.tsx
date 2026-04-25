@@ -131,7 +131,9 @@ export default function CourtGridMobile({ slots, clubs, selectedClubs }: Props) 
                                 {club.shortName ?? club.name.split(' ')[0]}
                               </span>
 
-                              {courtType && <CourtTypeBadge type={courtType} className="flex-shrink-0 ml-1.5 mr-1" />}
+                              <span className="flex-shrink-0 w-[68px] flex justify-end mr-1">
+                                {courtType && <CourtTypeBadge type={courtType} />}
+                              </span>
 
                               {/* Czas — stała szerokość, wyśrodkowany */}
                               <span className="text-xs text-gray-500 w-10 text-center flex-shrink-0">

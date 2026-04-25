@@ -1,7 +1,7 @@
-# Court Alert — Stan projektu (22.04.2026)
+# Court Alert — Stan projektu (25.04.2026, aktualizacja: sesja 13)
 
 ## Co to jest
-Webapka agregująca dostępność kortów padelowych w Warszawie w czasie rzeczywistym.
+Webapka agregująca dostępność kortów padelowych w Polsce w czasie rzeczywistym.
 Deployed na Vercel: https://court-alert.vercel.app (lub podobny URL z dashboardu Vercel).
 Repo: https://github.com/Szymoniak7/court-alert
 
@@ -25,7 +25,7 @@ Next.js App Router (TypeScript + Tailwind CSS)
 │       └── colors.ts          — paleta kolorów per klub
 └── lib/
     ├── types.ts               — interface TimeSlot (+ courtType: indoor/outdoor)
-    ├── clubs.ts               — lista 15 klubów z konfiguracją źródła danych
+    ├── clubs.ts               — lista 30 klubów z konfiguracją źródła danych (5 miast)
     ├── presets.ts             — presety czasowe + formatDatePL
     ├── pricing.ts             — dynamiczny cennik per klub (stawki z oficjalnych cenników)
     └── scrapers/
@@ -37,8 +37,9 @@ Next.js App Router (TypeScript + Tailwind CSS)
 
 ## Kluby i źródła danych
 
-### Zaimplementowane (15 klubów)
+### Zaimplementowane (30 klubów)
 
+#### Warszawa (15)
 | Klub | ID | Źródło | Szczegóły |
 |------|----|--------|-----------|
 | Loba Padel | `loba-padel` | Playtomic API | tenantId: `3ae6a706-...` |
@@ -57,7 +58,49 @@ Next.js App Router (TypeScript + Tailwind CSS)
 | TenisWil | `teniswil` | kluby.org (auth) | slug: `teniswil`, outdoor |
 | Tenes Jawczyce | `tenes` | kluby.org (auth) | slug: `tenes`, outdoor |
 
-### Pominięte (celowo)
+#### Śląsk (10)
+| Klub | ID | Źródło | Szczegóły |
+|------|----|--------|-----------|
+| Viva Padel Katowice | `viva-padel-katowice` | Playtomic API | tenantId: `84b91836-...` |
+| Padel Center & Academy | `padel-center-katowice` | Playtomic API | tenantId: `dd500ac3-...` |
+| Padel Up Katowice | `padelup-katowice` | kluby.org (auth) | slug: `padelup`, indoor |
+| Padel Team Tychy | `padel-team-tychy` | Playtomic API | tenantId: `d5a93847-...` |
+| Padel Team Bytom | `padel-team-bytom` | Playtomic API | tenantId: `05a9122e-...` |
+| Padelteam Zabrze | `padelteam-zabrze` | Playtomic API | tenantId: `90779e1e-...` |
+| Padelmania Dąbrowa | `padelmania-dabrowa` | Playtomic API | tenantId: `7bf2e08e-...` |
+| Padel On | `padel-on` | Playtomic API | tenantId: `8b616ddb-...`, Pszczyna |
+| Ultra Padel Gliwice | `ultra-padel-gliwice` | kluby.org (auth) | slug: `ultra-padel-gliwice`, indoor |
+| Sport Park Śląsk | `sport-park-slask` | kluby.org (auth) | slug: `sport-park`, Chorzów |
+
+#### Wrocław (2)
+| Klub | ID | Źródło | Szczegóły |
+|------|----|--------|-----------|
+| Padel PL Wrocław | `padel-pl-wroclaw` | Playtomic API | tenantId: `280bfe06-...` |
+| Fiesta Padel | `fiesta-padel` | Playtomic API | tenantId: `cf58118a-...` |
+
+#### Łódź (2)
+| Klub | ID | Źródło | Szczegóły |
+|------|----|--------|-----------|
+| Padel Łódź | `padel-lodz` | kluby.org (auth) | slug: `padel-lodz`, 1 indoor + 1 outdoor, 120 PLN flat |
+| Stacja Padel | `stacja-padel` | kluby.org (auth) | slug: `stacja-padel`, 5 indoor, otwarte 8.04.2026 |
+
+#### Opole (1)
+| Klub | ID | Źródło | Szczegóły |
+|------|----|--------|-----------|
+| Pop Yard | `pop-yard` | Playtomic API | tenantId: `68323d20-...` |
+
+---
+
+### Brak integracji — do rozkminy
+
+Kluby które istnieją ale używają systemów których jeszcze nie obsługujemy.
+
+| Klub | Miasto | System | Korty | Uwagi |
+|------|--------|--------|-------|-------|
+| Vera Sport (Vera Padel) | Łódź | **Playmore** (playmore.pl/reservation/109) | 4 indoor | Playmore = polski system, potencjalnie wiele klubów |
+| Korty Nowosolna | Łódź | kluby.org | 1 outdoor | Brak rezerwacji online, 1 kort — nieopłacalne |
+
+### Pominięte (celowo, Warszawa)
 
 | Klub | Powód |
 |------|-------|
@@ -512,6 +555,132 @@ Klub widzi tylko swoje rezerwacje. Court Alert widzi **niezaspokojoną podaż** 
 ### Sekwencja ogólnopolskiej ekspansji
 
 1. Warszawa (done — 15 klubów)
-2. Kraków, Wrocław, Trójmiasto — następne
-3. Pozostałe duże miasta
+2. Śląsk, Wrocław, Łódź, Opole (done — +15 klubów)
+3. Poznań, Trójmiasto, Kraków — następne
 4. Ogólnopolska skala → leverage w rozmowach z markami i klubami
+
+---
+
+### Sesja 12 (25.04.2026) — Ekspansja ogólnopolska: Śląsk + Wrocław + Łódź
+
+#### Nowe kluby (+15, łącznie 30)
+
+**Śląsk (+10):**
+- Viva Padel Katowice, Padel Center & Academy — Playtomic
+- Padel Up Katowice — kluby-auth
+- Padel Team Tychy, Padel Team Bytom, Padelteam Zabrze, Padelmania Dąbrowa, Padel On (Pszczyna) — Playtomic
+- Ultra Padel Gliwice — kluby-auth
+- Sport Park Śląsk (Chorzów) — kluby-auth
+
+**Wrocław (+2):**
+- Padel PL Wrocław, Fiesta Padel — Playtomic
+
+**Opole (+1):**
+- Pop Yard — Playtomic
+
+**Łódź (+2):**
+- Padel Łódź — kluby-auth, slug `padel-lodz`, 120 PLN flat
+- Stacja Padel — kluby-auth, slug `stacja-padel`, 5 indoor, otwarte 8.04.2026
+
+#### City Selector
+- Dropdown w headerze z listą miast, click-outside zamykanie
+- Geolokalizacja przy pierwszej wizycie (navigator.geolocation) — auto-ustawia miasto
+- Persystencja w localStorage (`ca_city`), zmiana miasta resetuje `selectedClubs`
+- `CITY_ORDER` + `CITY_COORDS` w `useFilters.ts` — nowe miasto dorzucane na koniec automatycznie
+
+#### Warmup optymalizacja (30 klubów)
+- Playtomic: 2 daty (dziś + jutro), pełny parallelizm
+- kluby.org: tylko dziś, semaphore(12)
+- Łącznie ~41 zadań zamiast 60 — mieści się w Vercel timeout
+
+#### Brak integracji — nowa sekcja w PROGRESS.md
+- **Vera Sport Łódź** (Playmore) — potencjalnie więcej klubów na tym systemie w Polsce
+- Playmore = polski system rezerwacji, warto sprawdzić zasięg przy kolejnych miastach
+
+---
+
+### Sesja 13 (25.04.2026) — Ekspansja: Poznań + Trójmiasto + Toruń + analiza ogólnopolska
+
+#### Nowe kluby (+9, łącznie 39)
+
+**Poznań (+3) — wszystkie Playtomic:**
+- InterPadel Poznań — tenant `34f066f9`, 9 kortów indoor
+- Plek Padel Poznań — tenant `56e1531e`, 10 kortów (5 indoor + 5 outdoor)
+- Akademia Padla Bukowska — tenant `bc890e60`, 5 kortów indoor, Wysogotowo k. Poznania
+
+**Trójmiasto (+5):**
+- InterPadel Gdynia — Playtomic, tenant `91a60f0a`, 10 kortów indoor
+- Baltic Padel Club — kluby-auth, slug `baltic-padel-club`, 9 kortów, Gdynia
+- Gdynia Padel Club — kluby-auth, slug `gdynia-padel-club`, 6 kortów (3 indoor + 3 outdoor)
+- Padbox Stadion — kluby-auth, slug `padbox`, 5 kortów (2 indoor + 3 outdoor), Gdańsk
+- Padbox Kartuska — kluby-auth, slug `padbox-kartuska`, 5 outdoor, Gdańsk
+
+**Toruń (+1):**
+- InterPadel Toruń — Playtomic, tenant `08e4db64`, 8 kortów indoor
+
+#### Zmiany techniczne
+- **Scraper keywords** — dodano `hala` → indoor, `odkryt` → outdoor (obsługuje np. "KORT 1 HALA", "KORT 4 ODKRYTE" z Gdynia Padel Club)
+- **Cenniki** — Baltic Padel, Gdynia Padel Club (osobny indoor/outdoor), Padbox Stadion (osobny indoor/outdoor), Padbox Kartuska
+- **City selector** — dodano Poznań `[52.41, 16.93]`, Trójmiasto `[54.40, 18.57]`, Toruń `[53.01, 18.60]`
+
+#### Kraków — pominięty
+Bajada Padel Club (5 kortów), Padel House (4 korty), Fame Sport Club (2 korty) — wszystkie mają `wyłączone rezerwacje ONLINE` na kluby.org. Garden Padel (4 korty) miał rezerwacje tymczasowo wyłączone.
+
+---
+
+## Analiza ogólnopolska — mapa pokrycia (25.04.2026)
+
+### Pokrycie obecne (39 klubów, 8 regionów)
+
+| Miasto/Region | Mamy | Wszystkich est. | Pokrycie |
+|---------------|------|-----------------|----------|
+| Warszawa | 15 | ~20 | ~70% |
+| Śląsk | 10 | ~21 | ~50% |
+| Trójmiasto | 5 | ~12 | ~40% |
+| Toruń | 1 | 4 | 25% |
+| Poznań | 3 | 7 | 43% |
+| Wrocław | 2 | 3 | 67% |
+| Łódź | 2 | 4 | 50% |
+| Opole | 1 | 1 | 100% |
+
+### Do dodania NATYCHMIAST (gotowe dane)
+
+| Klub | Miasto | Źródło | Korty | Co zrobić |
+|------|--------|--------|-------|-----------|
+| City Padel Toruń | Toruń | Playtomic `828ccdaf-99e0-4989-86fb-a313529edc58` | 5 indoor | dodaj do clubs.ts |
+| Fabryka Energii | Szczecin | Playtomic `4c0b171f-8e62-48a2-8fdc-46fb5b1073e9` | 3-4 outdoor | dodaj do clubs.ts |
+| Garden Padel | Kraków | kluby-auth `garden-padel` | 4 | rezerwacje wróciły, dodaj |
+| PURA Padel | Bydgoszcz | kluby-auth `pura-padel-pickleball` | 5 | rezerwacje aktywne, dodaj |
+| Padel Factory | Kraków okolice | kluby-auth `padel-factory` | ? | sprawdzić lokalizację/cennik |
+
+### Do sprawdzenia (mają REZERWUJ, brak pełnych danych)
+
+| Klub | Miasto | Slug / system |
+|------|--------|---------------|
+| Fast Tennis & Padel | Bydgoszcz | `fast-tennis-gdanska` (kluby-auth) |
+| Padel Park Bydgoszcz | Bydgoszcz | `padel-park-bydgoszcz` (kluby-auth) |
+| Platinum Rybnik | Śląsk/Rybnik | nieznany |
+| Solar Bielsko-Biała | Śląsk/Bielsko | nieznany |
+| Rancho Padel | okolice Torunia | nieznany |
+| ProPadel by Legia | Warszawa | nowy klub? 4 korty — sprawdzić czy != propadel |
+
+### Zablokowane (rezerwacje online wyłączone)
+
+| Klub | Miasto | Korty | Uwaga |
+|------|--------|-------|-------|
+| Bajada Padel Club | Kraków | 5 | wyłączone online |
+| Padel House Kraków | Kraków | 4 | wyłączone online |
+| Padel Club Szczecin | Szczecin | 5 | wyłączone online |
+| Fame Sport Club | Kraków | 2 | brak systemu + za mały |
+
+### Brak systemu / za małe (skip na razie)
+
+| Miasto | Sytuacja |
+|--------|----------|
+| Lublin | Padel Point (5 kortów) — własny system |
+| Rzeszów | Padelbox (2 korty) — za mały |
+| Białystok | 2 obiekty, brak Playtomic/kluby |
+| Kielce | 1 obiekt |
+| Olsztyn / Warmia | 5 obiektów, małe / własne systemy |
+| Zielona Góra / Gorzów | po 1 obiekcie, własne systemy |
+| Wrocław Morskie Oko | własna strona, brak API |

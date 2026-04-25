@@ -244,9 +244,9 @@ function parseGrafikHtml(
     const courtName = courtNames[colIdx + 1] || `Kort ${colIdx + 1}`;
     const nameLower = courtName.toLowerCase();
     let courtType: 'indoor' | 'outdoor' | undefined =
-      nameLower.includes('zewn') || nameLower.includes('outdoor') || nameLower.includes('open')
+      nameLower.includes('zewn') || nameLower.includes('outdoor') || nameLower.includes('open') || nameLower.includes('odkryt')
         ? 'outdoor'
-        : nameLower.includes('kryt') || nameLower.includes('indoor') || nameLower.includes('wewn')
+        : nameLower.includes('kryt') || nameLower.includes('indoor') || nameLower.includes('wewn') || nameLower.includes('hala')
         ? 'indoor'
         : undefined;
 

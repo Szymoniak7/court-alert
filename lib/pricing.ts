@@ -119,6 +119,75 @@ const PRICING: Record<string, ClubPricing> = {
     ],
   },
 
+  // ── Łódź ──────────────────────────────────────────────────────────────────
+  'padel-lodz': {
+    // https://kluby.org/padel-lodz — indoor + outdoor: 120 PLN/h flat
+    defaultHourlyRate: 120,
+    tiers: [
+      { hourlyRate: 120 },
+    ],
+  },
+  'stacja-padel': {
+    // https://stacjapadel.pl — pn-pt 10-16: 120, pozostałe: 160 / weekend: 160
+    defaultHourlyRate: 160,
+    tiers: [
+      { hourlyRate: 120, weekdayOnly: true, fromHour: 10, toHour: 16 },
+      { hourlyRate: 160, weekdayOnly: true },
+      { hourlyRate: 160, weekendOnly: true },
+    ],
+  },
+
+  // ── Trójmiasto ────────────────────────────────────────────────────────────
+  'baltic-padel-club': {
+    // https://balticpadelclub.pl — pn-pt do 16: 112, 16+: 172 / weekend: 172
+    defaultHourlyRate: 172,
+    tiers: [
+      { hourlyRate: 112, weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 172, weekdayOnly: true, fromHour: 16, toHour: 23 },
+      { hourlyRate: 172, weekendOnly: true },
+    ],
+  },
+  'gdynia-padel-club': {
+    // https://gdyniapadelclub.pl — indoor pn-pt do 16: 98, 16+: 128 / weekend: 128
+    // outdoor pn-pt do 16: 60, 16+: 88 / weekend: 88
+    defaultHourlyRate: 128,
+    tiers: [
+      { hourlyRate: 98,  weekdayOnly: true, fromHour: 6,  toHour: 16 },
+      { hourlyRate: 128, weekdayOnly: true, fromHour: 16, toHour: 24 },
+      { hourlyRate: 128, weekendOnly: true },
+    ],
+    outdoorDefaultHourlyRate: 88,
+    outdoorTiers: [
+      { hourlyRate: 60, weekdayOnly: true, fromHour: 6,  toHour: 16 },
+      { hourlyRate: 88, weekdayOnly: true, fromHour: 16, toHour: 24 },
+      { hourlyRate: 88, weekendOnly: true },
+    ],
+  },
+  'padbox': {
+    // https://padbox.pl — outdoor pn-pt do 16: 70, 16+: 90 / indoor pn-pt do 16: 100, 16+: 120
+    defaultHourlyRate: 120,
+    tiers: [
+      { hourlyRate: 100, weekdayOnly: true, fromHour: 6,  toHour: 16 },
+      { hourlyRate: 120, weekdayOnly: true, fromHour: 16, toHour: 24 },
+      { hourlyRate: 120, weekendOnly: true },
+    ],
+    outdoorDefaultHourlyRate: 90,
+    outdoorTiers: [
+      { hourlyRate: 70, weekdayOnly: true, fromHour: 6,  toHour: 16 },
+      { hourlyRate: 90, weekdayOnly: true, fromHour: 16, toHour: 24 },
+      { hourlyRate: 90, weekendOnly: true },
+    ],
+  },
+  'padbox-kartuska': {
+    // https://padbox.pl — outdoor only: pn-pt do 16: 70, 16+: 90 / weekend: 90
+    defaultHourlyRate: 90,
+    tiers: [
+      { hourlyRate: 70, weekdayOnly: true, fromHour: 6,  toHour: 16 },
+      { hourlyRate: 90, weekdayOnly: true, fromHour: 16, toHour: 24 },
+      { hourlyRate: 90, weekendOnly: true },
+    ],
+  },
+
   'padlovnia': {
     // https://padlovnia.pl — cennik zimowy 2025-2026
     // Indoor: pn-pt 07-16: 140, 16-24: 180 / weekend: 180

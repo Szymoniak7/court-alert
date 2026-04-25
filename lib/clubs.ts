@@ -252,6 +252,23 @@ export const CLUBS: Club[] = [
     playtomicSlug: 'fiesta-padel',
   },
 
+  // ── Łódź ──────────────────────────────────────────────────────────────────
+  {
+    id: 'padel-lodz',
+    name: 'Padel Łódź',
+    city: 'Łódź',
+    source: 'kluby-auth',
+    klubySlug: 'padel-lodz',
+  },
+  {
+    id: 'stacja-padel',
+    name: 'Stacja Padel',
+    city: 'Łódź',
+    source: 'kluby-auth',
+    klubySlug: 'stacja-padel',
+    defaultCourtType: 'indoor',
+  },
+
   // ── Opole ─────────────────────────────────────────────────────────────────
   {
     id: 'pop-yard',
@@ -260,5 +277,93 @@ export const CLUBS: Club[] = [
     source: 'playtomic',
     playtomicTenantId: '68323d20-8d88-4653-9a50-148cb9a5b49e',
     playtomicSlug: 'pop-yard-padel',
+  },
+
+  // ── Poznań ────────────────────────────────────────────────────────────────
+  {
+    id: 'interpadel-poznan',
+    name: 'InterPadel Poznań',
+    shortName: 'Interpadel Pzn',
+    city: 'Poznań',
+    source: 'playtomic',
+    playtomicTenantId: '34f066f9-4292-4cce-923f-2fa95f1c7b47',
+    playtomicSlug: 'interpadel-poznan',
+    defaultCourtType: 'indoor',
+  },
+  {
+    id: 'plek-poznan',
+    name: 'Plek Padel Poznań',
+    shortName: 'Plek Padel',
+    city: 'Poznań',
+    source: 'playtomic',
+    playtomicTenantId: '56e1531e-e108-42af-b877-834a53381efa',
+    playtomicSlug: 'plek-poznan',
+  },
+  {
+    id: 'akademia-padla-bukowska',
+    name: 'Akademia Padla Bukowska',
+    shortName: 'Akademia Padla',
+    city: 'Poznań',
+    source: 'playtomic',
+    playtomicTenantId: 'bc890e60-1580-43c2-8721-b96fa53bb775',
+    playtomicSlug: 'akademia-padla-bukowska',
+    defaultCourtType: 'indoor',
+  },
+
+  // ── Trójmiasto ────────────────────────────────────────────────────────────
+  {
+    id: 'interpadel-gdynia',
+    name: 'InterPadel Gdynia',
+    shortName: 'Interpadel Gdy',
+    city: 'Trójmiasto',
+    source: 'playtomic',
+    playtomicTenantId: '91a60f0a-1fef-4efc-9548-3a6b37ae25e0',
+    playtomicSlug: 'interpadel-gdynia',
+    defaultCourtType: 'indoor',
+  },
+  {
+    id: 'baltic-padel-club',
+    name: 'Baltic Padel Club',
+    shortName: 'Baltic Padel',
+    city: 'Trójmiasto',
+    source: 'kluby-auth',
+    klubySlug: 'baltic-padel-club',
+    defaultCourtType: 'indoor',
+  },
+  {
+    id: 'gdynia-padel-club',
+    name: 'Gdynia Padel Club',
+    shortName: 'Gdynia Padel',
+    city: 'Trójmiasto',
+    source: 'kluby-auth',
+    klubySlug: 'gdynia-padel-club',
+  },
+  {
+    id: 'padbox',
+    name: 'Padbox Stadion',
+    city: 'Trójmiasto',
+    source: 'kluby-auth',
+    klubySlug: 'padbox',
+    defaultCourtType: 'outdoor',
+  },
+  {
+    id: 'padbox-kartuska',
+    name: 'Padbox Kartuska',
+    city: 'Trójmiasto',
+    source: 'kluby-auth',
+    klubySlug: 'padbox-kartuska',
+    defaultCourtType: 'outdoor',
+  },
+
+  // ── Toruń ─────────────────────────────────────────────────────────────────
+  {
+    id: 'interpadel-torun',
+    name: 'InterPadel Toruń',
+    shortName: 'Interpadel Tor.',
+    city: 'Toruń',
+    source: 'playtomic',
+    playtomicTenantId: '08e4db64-8cdd-4ae1-b38e-a8f7a77bfdcc',
+    playtomicSlug: 'interpadel-torun',
+    defaultCourtType: 'indoor',
   },
 ];

@@ -171,11 +171,85 @@ export const CLUB_COLORS: Record<string, {
     header: 'text-orange-400',
   },
 
+  // ── Łódź ──────────────────────────────────────────────────────────────────
+  'padel-lodz': {
+    hex: '#d946ef',
+    cell: 'bg-fuchsia-500/20 border-fuchsia-500/35 text-fuchsia-200 hover:bg-fuchsia-500/30',
+    badge: 'bg-fuchsia-950 text-fuchsia-300 border-fuchsia-800',
+    header: 'text-fuchsia-400',
+  },
+  'stacja-padel': {
+    hex: '#86efac',
+    cell: 'bg-green-300/20 border-green-300/35 text-green-100 hover:bg-green-300/30',
+    badge: 'bg-green-900 text-green-200 border-green-700',
+    header: 'text-green-300',
+  },
+
   // ── Opole ─────────────────────────────────────────────────────────────────
   'pop-yard': {
     hex: '#93c5fd',
     cell: 'bg-blue-300/20 border-blue-300/35 text-blue-200 hover:bg-blue-300/30',
     badge: 'bg-blue-900 text-blue-200 border-blue-700',
     header: 'text-blue-300',
+  },
+
+  // ── Poznań ────────────────────────────────────────────────────────────────
+  'interpadel-poznan': {
+    hex: '#4f46e5',
+    cell: 'bg-indigo-600/20 border-indigo-600/35 text-indigo-200 hover:bg-indigo-600/30',
+    badge: 'bg-indigo-950 text-indigo-300 border-indigo-800',
+    header: 'text-indigo-500',
+  },
+  'plek-poznan': {
+    hex: '#65a30d',
+    cell: 'bg-lime-600/20 border-lime-600/35 text-lime-200 hover:bg-lime-600/30',
+    badge: 'bg-lime-950 text-lime-300 border-lime-800',
+    header: 'text-lime-500',
+  },
+  'akademia-padla-bukowska': {
+    hex: '#0e7490',
+    cell: 'bg-cyan-700/20 border-cyan-700/35 text-cyan-200 hover:bg-cyan-700/30',
+    badge: 'bg-cyan-950 text-cyan-300 border-cyan-800',
+    header: 'text-cyan-600',
+  },
+
+  // ── Trójmiasto ────────────────────────────────────────────────────────────
+  'interpadel-gdynia': {
+    hex: '#0d9488',
+    cell: 'bg-teal-600/20 border-teal-600/35 text-teal-200 hover:bg-teal-600/30',
+    badge: 'bg-teal-950 text-teal-300 border-teal-800',
+    header: 'text-teal-500',
+  },
+  'baltic-padel-club': {
+    hex: '#dc2626',
+    cell: 'bg-red-600/20 border-red-600/35 text-red-200 hover:bg-red-600/30',
+    badge: 'bg-red-950 text-red-300 border-red-800',
+    header: 'text-red-500',
+  },
+  'gdynia-padel-club': {
+    hex: '#9333ea',
+    cell: 'bg-purple-600/20 border-purple-600/35 text-purple-200 hover:bg-purple-600/30',
+    badge: 'bg-purple-950 text-purple-300 border-purple-800',
+    header: 'text-purple-500',
+  },
+  'padbox': {
+    hex: '#d97706',
+    cell: 'bg-amber-600/20 border-amber-600/35 text-amber-200 hover:bg-amber-600/30',
+    badge: 'bg-amber-950 text-amber-300 border-amber-800',
+    header: 'text-amber-500',
+  },
+  'padbox-kartuska': {
+    hex: '#16a34a',
+    cell: 'bg-green-600/20 border-green-600/35 text-green-200 hover:bg-green-600/30',
+    badge: 'bg-green-950 text-green-300 border-green-800',
+    header: 'text-green-500',
+  },
+
+  // ── Toruń ─────────────────────────────────────────────────────────────────
+  'interpadel-torun': {
+    hex: '#0284c7',
+    cell: 'bg-sky-600/20 border-sky-600/35 text-sky-200 hover:bg-sky-600/30',
+    badge: 'bg-sky-950 text-sky-300 border-sky-800',
+    header: 'text-sky-500',
   },
 };
