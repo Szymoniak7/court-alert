@@ -15,11 +15,15 @@ export async function GET() {
 
   const today = toDate(0);
 
-  // Warm only fast clubs (Playtomic + public kluby) — no auth, fully parallel, < 2s even on cold start.
-  // Auth clubs (kluby-auth) warm on first user request via streaming.
-  const fastClubs = CLUBS.filter((c) => c.source === 'playtomic' || c.source === 'kluby');
-  const semaphore = makeSemaphore(20);
-  const tasks = buildTasks([today], fastClubs, semaphore);
+  // Strategy:
+  // - Playtomic (26 clubs): parallel, ~500ms total
+  // - Warszawa auth (8 clubs): shared session → single login + 8 scrapes ~1.5s
+  // - Other city auth clubs: warm on first user request via streaming
+  // Total: ~2s → well within Vercel 10s limit
+  const playtomicAndPublic = CLUBS.filter((c) => c.source === 'playtomic' || c.source === 'kluby');
+  const warsawAuth = CLUBS.filter((c) => c.source === 'kluby-auth' && c.city === 'Warszawa');
+  const semaphore = makeSemaphore(8);
+  const tasks = buildTasks([today], [...playtomicAndPublic, ...warsawAuth], semaphore);
 
   const results = await Promise.allSettled(tasks.map((t) => t.promise));
   const succeeded = results.filter((r) => r.status === 'fulfilled').length;
