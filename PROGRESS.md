@@ -1,4 +1,4 @@
-# Court Alert — Stan projektu (25.04.2026, aktualizacja: sesja 13)
+# Court Alert — Stan projektu (25.04.2026, aktualizacja: sesja 14)
 
 ## Co to jest
 Webapka agregująca dostępność kortów padelowych w Polsce w czasie rzeczywistym.
@@ -624,63 +624,99 @@ Klub widzi tylko swoje rezerwacje. Court Alert widzi **niezaspokojoną podaż** 
 - **City selector** — dodano Poznań `[52.41, 16.93]`, Trójmiasto `[54.40, 18.57]`, Toruń `[53.01, 18.60]`
 
 #### Kraków — pominięty
-Bajada Padel Club (5 kortów), Padel House (4 korty), Fame Sport Club (2 korty) — wszystkie mają `wyłączone rezerwacje ONLINE` na kluby.org. Garden Padel (4 korty) miał rezerwacje tymczasowo wyłączone.
+Bajada Padel Club (5 kortów), Padel House (4 korty), Fame Sport Club (2 korty) — wszystkie mają `wyłączone rezerwacje ONLINE` na kluby.org. Garden Padel (4 korty) używa **Tenis4u** (własny system — nie kluby.org ani Playtomic).
+
+---
+
+### Sesja 14 (25.04.2026) — Analiza ogólnopolska + 7 nowych klubów, 2 nowe miasta
+
+#### Research ogólnopolski
+Przeprowadzono dokładny research wszystkich miast: weryfikacja systemów rezerwacji, dostępności online, liczby kortów.
+
+Kluczowe ustalenia:
+- **Garden Padel Kraków** — błąd w PROGRESS.md: używa Tenis4u (własny system), nie kluby.org. Kraków całkowicie odcięty.
+- **Padel Park** — w Pruszczu Gdańskim (nie Bydgoszcz), slug `padel-park` na kluby.org z aktywnymi rezerwacjami
+- **Solar** — Bielsko-Biała, slug `solar` na kluby.org, rezerwacje aktywne
+- **Morskie Oko** — Wrocław, slug `morskie-oko` na kluby.org, outdoor, 3. klub w mieście
+- **Brawo Padel & Squash Gdańsk** — używa Playmore + Reservise, 2 korty — nie integrujemy
+- **ProPadel by Legia** — Courtme.io (ul. Myśliwiecka 4a, outdoor sezonowy) — nie integrujemy
+- **CSR Platinum Rybnik** — brak rezerwacji online na kluby.org (2 korty)
+
+#### Nowe kluby (+7, łącznie 46)
+
+**Toruń (+1):**
+- City Padel Toruń — Playtomic `828ccdaf`, 5 indoor
+
+**Szczecin — NOWE MIASTO (+1):**
+- Fabryka Energii — Playtomic `4c0b171f`, 4 indoor
+
+**Bydgoszcz — NOWE MIASTO (+2):**
+- PURA Padel — kluby-auth `pura-padel-pickleball`, 5 indoor
+- Fast Tennis & Padel — kluby-auth `fast-tennis-gdanska`
+
+**Bielsko-Biała (+1, Śląsk):**
+- Solar — kluby-auth `solar`
+
+**Wrocław (+1, łącznie 3 = 100% pokrycia):**
+- Morskie Oko — kluby-auth `morskie-oko`, outdoor
+
+**Trójmiasto/Pruszcz Gdański (+1):**
+- Padel Park — kluby-auth `padel-park`
+
+#### City selector
+- Dodano Bielsko-Biała `[49.82, 19.06]`, Bydgoszcz `[53.12, 18.01]`, Szczecin `[53.43, 14.55]`
+- Bielsko-Biała wstawiona po Pszczynie w grupie śląskiej
+
+#### Cenniki (szacunki — do weryfikacji)
+- PURA Padel: 110/140 PLN (pn-pt/peak)
+- Fast Tennis: 90/120 PLN
+- Solar: 90/120 PLN
+- Morskie Oko: 80/100 PLN (outdoor)
+- Padel Park: 80/110 PLN
 
 ---
 
 ## Analiza ogólnopolska — mapa pokrycia (25.04.2026)
 
-### Pokrycie obecne (39 klubów, 8 regionów)
+### Pokrycie obecne (46 klubów, 10 regionów)
 
 | Miasto/Region | Mamy | Wszystkich est. | Pokrycie |
 |---------------|------|-----------------|----------|
-| Warszawa | 15 | ~20 | ~70% |
-| Śląsk | 10 | ~21 | ~50% |
-| Trójmiasto | 5 | ~12 | ~40% |
-| Toruń | 1 | 4 | 25% |
+| Warszawa | 15 | ~20 | ~75% |
+| Śląsk | 11 | ~22 | ~50% |
+| Trójmiasto | 6 | ~12 | ~50% |
+| Toruń | 2 | 4 | 50% |
 | Poznań | 3 | 7 | 43% |
-| Wrocław | 2 | 3 | 67% |
+| Wrocław | 3 | 3 | 100% |
 | Łódź | 2 | 4 | 50% |
 | Opole | 1 | 1 | 100% |
+| Bydgoszcz | 2 | 3 | 67% |
+| Szczecin | 1 | 2 | 50% |
 
-### Do dodania NATYCHMIAST (gotowe dane)
+### Zablokowane / zły system — nie da się zintegrować
 
-| Klub | Miasto | Źródło | Korty | Co zrobić |
-|------|--------|--------|-------|-----------|
-| City Padel Toruń | Toruń | Playtomic `828ccdaf-99e0-4989-86fb-a313529edc58` | 5 indoor | dodaj do clubs.ts |
-| Fabryka Energii | Szczecin | Playtomic `4c0b171f-8e62-48a2-8fdc-46fb5b1073e9` | 3-4 outdoor | dodaj do clubs.ts |
-| Garden Padel | Kraków | kluby-auth `garden-padel` | 4 | rezerwacje wróciły, dodaj |
-| PURA Padel | Bydgoszcz | kluby-auth `pura-padel-pickleball` | 5 | rezerwacje aktywne, dodaj |
-| Padel Factory | Kraków okolice | kluby-auth `padel-factory` | ? | sprawdzić lokalizację/cennik |
-
-### Do sprawdzenia (mają REZERWUJ, brak pełnych danych)
-
-| Klub | Miasto | Slug / system |
-|------|--------|---------------|
-| Fast Tennis & Padel | Bydgoszcz | `fast-tennis-gdanska` (kluby-auth) |
-| Padel Park Bydgoszcz | Bydgoszcz | `padel-park-bydgoszcz` (kluby-auth) |
-| Platinum Rybnik | Śląsk/Rybnik | nieznany |
-| Solar Bielsko-Biała | Śląsk/Bielsko | nieznany |
-| Rancho Padel | okolice Torunia | nieznany |
-| ProPadel by Legia | Warszawa | nowy klub? 4 korty — sprawdzić czy != propadel |
-
-### Zablokowane (rezerwacje online wyłączone)
-
-| Klub | Miasto | Korty | Uwaga |
-|------|--------|-------|-------|
-| Bajada Padel Club | Kraków | 5 | wyłączone online |
-| Padel House Kraków | Kraków | 4 | wyłączone online |
-| Padel Club Szczecin | Szczecin | 5 | wyłączone online |
-| Fame Sport Club | Kraków | 2 | brak systemu + za mały |
+| Klub | Miasto | Powód |
+|------|--------|-------|
+| Garden Padel | Kraków | **Tenis4u** (własny system, nie kluby.org) |
+| Bajada Padel Club | Kraków | Brak rezerwacji online na kluby.org |
+| Padel House Kraków | Kraków | Brak rezerwacji online |
+| Ahoj Padel | Niepołomice | Brak rezerwacji online |
+| CSR Platinum | Rybnik | Brak online (2 korty — za mały) |
+| Padel Club Szczecin | Szczecin | Własny system (SMS kod do bramy) |
+| Brawo Padel & Squash | Gdańsk | **Playmore** + Reservise (2 korty — za mały) |
+| Vera Sport | Łódź | **Playmore** |
+| ProPadel by Legia | Warszawa | **Courtme.io** |
+| Padel Factory | Kraków | Brak aktywnych rezerwacji online |
+| Tenispoint | Bydgoszcz | Tylko telefon (2 korty) |
 
 ### Brak systemu / za małe (skip na razie)
 
 | Miasto | Sytuacja |
 |--------|----------|
+| Kraków | Cały odcięty — Tenis4u + Playmore + wyłączone online |
 | Lublin | Padel Point (5 kortów) — własny system |
 | Rzeszów | Padelbox (2 korty) — za mały |
 | Białystok | 2 obiekty, brak Playtomic/kluby |
 | Kielce | 1 obiekt |
 | Olsztyn / Warmia | 5 obiektów, małe / własne systemy |
 | Zielona Góra / Gorzów | po 1 obiekcie, własne systemy |
-| Wrocław Morskie Oko | własna strona, brak API |

@@ -188,6 +188,59 @@ const PRICING: Record<string, ClubPricing> = {
     ],
   },
 
+  // ── Bydgoszcz ─────────────────────────────────────────────────────────────
+  'pura-padel': {
+    // https://kluby.org/pura-padel-pickleball — szacunek, cennik do weryfikacji
+    defaultHourlyRate: 140,
+    tiers: [
+      { hourlyRate: 110, weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 140, weekdayOnly: true, fromHour: 16, toHour: 23 },
+      { hourlyRate: 140, weekendOnly: true },
+    ],
+  },
+  'fast-tennis': {
+    // https://fasttennis.pl — szacunek, cennik do weryfikacji
+    defaultHourlyRate: 120,
+    tiers: [
+      { hourlyRate: 90,  weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 120, weekdayOnly: true, fromHour: 16, toHour: 23 },
+      { hourlyRate: 120, weekendOnly: true },
+    ],
+  },
+
+  // ── Bielsko-Biała ─────────────────────────────────────────────────────────
+  'solar': {
+    // https://kluby.org/solar — szacunek, cennik do weryfikacji
+    defaultHourlyRate: 120,
+    tiers: [
+      { hourlyRate: 90,  weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 120, weekdayOnly: true, fromHour: 16, toHour: 22 },
+      { hourlyRate: 120, weekendOnly: true },
+    ],
+  },
+
+  // ── Wrocław (cd.) ─────────────────────────────────────────────────────────
+  'morskie-oko': {
+    // https://kluby.org/morskie-oko — outdoor, szacunek, cennik do weryfikacji
+    defaultHourlyRate: 100,
+    tiers: [
+      { hourlyRate: 80,  weekdayOnly: true, fromHour: 6,  toHour: 16 },
+      { hourlyRate: 100, weekdayOnly: true, fromHour: 16, toHour: 23 },
+      { hourlyRate: 100, weekendOnly: true },
+    ],
+  },
+
+  // ── Pruszcz Gdański (Trójmiasto) ──────────────────────────────────────────
+  'padel-park': {
+    // https://kluby.org/padel-park — szacunek, cennik do weryfikacji
+    defaultHourlyRate: 110,
+    tiers: [
+      { hourlyRate: 80,  weekdayOnly: true, fromHour: 7,  toHour: 16 },
+      { hourlyRate: 110, weekdayOnly: true, fromHour: 16, toHour: 23 },
+      { hourlyRate: 110, weekendOnly: true },
+    ],
+  },
+
   'padlovnia': {
     // https://padlovnia.pl — cennik zimowy 2025-2026
     // Indoor: pn-pt 07-16: 140, 16-24: 180 / weekend: 180

@@ -366,4 +366,71 @@ export const CLUBS: Club[] = [
     playtomicSlug: 'interpadel-torun',
     defaultCourtType: 'indoor',
   },
+  {
+    id: 'city-padel-torun',
+    name: 'City Padel Toruń',
+    shortName: 'City Padel',
+    city: 'Toruń',
+    source: 'playtomic',
+    playtomicTenantId: '828ccdaf-99e0-4989-86fb-a313529edc58',
+    playtomicSlug: 'city-padel-torun',
+    defaultCourtType: 'indoor',
+  },
+
+  // ── Szczecin ──────────────────────────────────────────────────────────────
+  {
+    id: 'fabryka-energii',
+    name: 'Fabryka Energii',
+    city: 'Szczecin',
+    source: 'playtomic',
+    playtomicTenantId: '4c0b171f-8e62-48a2-8fdc-46fb5b1073e9',
+    playtomicSlug: 'fabryka-energii',
+    defaultCourtType: 'indoor',
+  },
+
+  // ── Bydgoszcz ─────────────────────────────────────────────────────────────
+  {
+    id: 'pura-padel',
+    name: 'PURA Padel',
+    city: 'Bydgoszcz',
+    source: 'kluby-auth',
+    klubySlug: 'pura-padel-pickleball',
+    defaultCourtType: 'indoor',
+  },
+  {
+    id: 'fast-tennis',
+    name: 'Fast Tennis & Padel',
+    shortName: 'Fast Tennis',
+    city: 'Bydgoszcz',
+    source: 'kluby-auth',
+    klubySlug: 'fast-tennis-gdanska',
+  },
+
+  // ── Bielsko-Biała ─────────────────────────────────────────────────────────
+  {
+    id: 'solar',
+    name: 'Solar',
+    city: 'Bielsko-Biała',
+    source: 'kluby-auth',
+    klubySlug: 'solar',
+  },
+
+  // ── Wrocław (cd.) ─────────────────────────────────────────────────────────
+  {
+    id: 'morskie-oko',
+    name: 'Morskie Oko',
+    city: 'Wrocław',
+    source: 'kluby-auth',
+    klubySlug: 'morskie-oko',
+    defaultCourtType: 'outdoor',
+  },
+
+  // ── Pruszcz Gdański (Trójmiasto) ──────────────────────────────────────────
+  {
+    id: 'padel-park',
+    name: 'Padel Park',
+    city: 'Trójmiasto',
+    source: 'kluby-auth',
+    klubySlug: 'padel-park',
+  },
 ];
